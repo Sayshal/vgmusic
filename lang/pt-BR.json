@@ -13,6 +13,8 @@
   "VGMusic.PlaylistSection.Area": "Música de Área",
   "VGMusic.PlaylistSection.Combat": "Música de Combate",
   "VGMusic.Priority": "Prioridade",
+  "VGMusic.Settings.FadeDuration.Hint": "Duração em segundos para a transição gradual entre as faixas. Defina como 0 para usar a configuração de transição gradual individual de cada som.",
+  "VGMusic.Settings.FadeDuration.Name": "Duração da Transição",
   "VGMusic.Settings.DefaultMusic.Hint": "Configure músicas padrão para diversas situações.",
   "VGMusic.Settings.DefaultMusic.Label": "Configurar Música Padrão",
   "VGMusic.Settings.DefaultMusic.Name": "Música Padrão",
