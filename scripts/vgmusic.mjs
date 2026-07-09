@@ -17,7 +17,8 @@ import {
 } from './app.mjs';
 
 Hooks.once('init', async () => {
-  console.log('VGMusic | Initializing Video Game Music module');
+  ATLAS.register('vgmusic', { title: 'Video Game Music', github: 'Sayshal/vgmusic' });
+  ATLAS.log(3, 'Initializing Video Game Music module');
   game.vgmusic = { musicController: new MusicController(), VGMusicConfig: VGMusicConfig };
   registerSettings();
   registerKeybindings();

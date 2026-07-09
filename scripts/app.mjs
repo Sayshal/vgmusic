@@ -82,7 +82,7 @@ export class VGMusicConfig extends HandlebarsApplicationMixin(ApplicationV2) {
       const docType = this.documentTypeName;
       const sections = CONST.playlistSections[docType];
       if (!sections) {
-        console.error('VGMusic | No sections found for document type:', docType);
+        ATLAS.log(1, 'No sections found for document type:', docType);
         this.config = [];
         return;
       }
@@ -111,7 +111,7 @@ export class VGMusicConfig extends HandlebarsApplicationMixin(ApplicationV2) {
       });
       this.config.sort((a, b) => a.order - b.order);
     } catch (error) {
-      console.error('VGMusic | Error initializing configuration:', error);
+      ATLAS.log(1, 'Error initializing configuration:', error);
       this.config = [];
     }
   }
@@ -119,7 +119,7 @@ export class VGMusicConfig extends HandlebarsApplicationMixin(ApplicationV2) {
   /** @override */
   _prepareContext(_options) {
     this.initializeConfig();
-    const playlistConfig = this.config.map((section, index) => ({ ...section, index, labelLocalized: game.i18n.localize(section.label) }));
+    const playlistConfig = this.config.map((section, index) => ({ ...section, index, labelLocalized: _loc(section.label) }));
     const buttons = [
       { type: 'submit', icon: 'fas fa-save', label: 'VGMusic.UI.Save' },
       { type: 'button', action: 'reset', icon: 'fas fa-undo', label: 'VGMusic.UI.Reset' }
@@ -178,7 +178,7 @@ export class VGMusicConfig extends HandlebarsApplicationMixin(ApplicationV2) {
     try {
       const li = event.currentTarget.closest('li');
       if (!li || li.classList.contains('not-sortable')) {
-        console.error('VGMusic | Drag start blocked - not sortable');
+        ATLAS.log(1, 'Drag start blocked - not sortable');
         return false;
       }
       this._formState = this._captureFormState();
@@ -188,7 +188,7 @@ export class VGMusicConfig extends HandlebarsApplicationMixin(ApplicationV2) {
       li.classList.add('dragging');
       return true;
     } catch (error) {
-      console.error('VGMusic | Error starting drag:', error);
+      ATLAS.log(1, 'Error starting drag:', error);
       return false;
     }
   }
@@ -201,7 +201,7 @@ export class VGMusicConfig extends HandlebarsApplicationMixin(ApplicationV2) {
     event.preventDefault();
     const list = this.element.querySelector('.playlist-section-list');
     if (!list) {
-      console.warn('VGMusic | No playlist section list found');
+      ATLAS.log(2, 'No playlist section list found');
       return;
     }
     const draggingItem = list.querySelector('.dragging');
@@ -243,7 +243,7 @@ export class VGMusicConfig extends HandlebarsApplicationMixin(ApplicationV2) {
         }, null)?.element || null
       );
     } catch (error) {
-      console.error('VGMusic | Error finding drag target:', error);
+      ATLAS.log(1, 'Error finding drag target:', error);
       return null;
     }
   }
@@ -279,7 +279,7 @@ export class VGMusicConfig extends HandlebarsApplicationMixin(ApplicationV2) {
       this.render(false);
       return true;
     } catch (error) {
-      console.error('VGMusic | Error handling reorder drop:', error);
+      ATLAS.log(1, 'Error handling reorder drop:', error);
       return false;
     } finally {
       this.cleanupDragElements();
@@ -302,7 +302,7 @@ export class VGMusicConfig extends HandlebarsApplicationMixin(ApplicationV2) {
       try {
         data = JSON.parse(dataString);
       } catch (e) {
-        console.error('VGMusic | Failed to parse drag data:', e);
+        ATLAS.log(1, 'Failed to parse drag data:', e);
         return false;
       }
       if (data.type === 'playlist-config-reorder') return false;
@@ -471,7 +471,7 @@ export class VGMusicConfig extends HandlebarsApplicationMixin(ApplicationV2) {
         game.vgmusic?.musicController?.playCurrentTrack();
         this.close();
       } catch (error) {
-        console.error('VGMusic | Error updating data:', error);
+        ATLAS.log(1, 'Error updating data:', error);
         ui.notifications.error('Failed to save music configuration');
         return false;
       }
@@ -515,7 +515,7 @@ export function getSceneControlButtons(controls) {
       };
     }
   } catch (error) {
-    console.error('VGMusic | Error adding scene control buttons:', error);
+    ATLAS.log(1, 'Error adding scene control buttons:', error);
   }
 }
 
@@ -533,16 +533,16 @@ export function handleSceneConfigRender(app, html) {
     const newFormGroup = document.createElement('div');
     newFormGroup.className = 'form-group';
     const label = document.createElement('label');
-    label.textContent = game.i18n.localize('VGMusic.CombatMusic');
+    label.textContent = _loc('VGMusic.CombatMusic');
     const formFields = document.createElement('div');
     formFields.className = 'form-fields';
     const button = document.createElement('button');
     button.type = 'button';
     button.dataset.action = 'vgmusic-scene';
-    button.innerHTML = `<i class="fas fa-music"></i> ${game.i18n.localize('VGMusic.ConfigTitle')}`;
+    button.innerHTML = `<i class="fas fa-music"></i> ${_loc('VGMusic.ConfigTitle')}`;
     const hint = document.createElement('p');
     hint.className = 'hint';
-    hint.textContent = game.i18n.localize('VGMusic.Settings.DefaultMusic.Hint');
+    hint.textContent = _loc('VGMusic.Settings.DefaultMusic.Hint');
     formFields.appendChild(button);
     newFormGroup.appendChild(label);
     newFormGroup.appendChild(formFields);
@@ -553,7 +553,7 @@ export function handleSceneConfigRender(app, html) {
       new VGMusicConfig(app.document).render(true);
     });
   } catch (error) {
-    console.error('VGMusic | Error adding scene config button:', error);
+    ATLAS.log(1, 'Error adding scene config button:', error);
   }
 }
 
@@ -647,13 +647,13 @@ export function handleTokenConfigRender(app, html, _context, _options) {
     const formGroup = document.createElement('div');
     formGroup.className = 'form-group';
     const label = document.createElement('label');
-    label.textContent = game.i18n.localize('VGMusic.CombatMusic');
+    label.textContent = _loc('VGMusic.CombatMusic');
     const formFields = document.createElement('div');
     formFields.className = 'form-fields';
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'vgmusic-token-config';
-    button.innerHTML = `<i class="fas fa-music"></i> ${game.i18n.localize('VGMusic.ConfigTitle')}`;
+    button.innerHTML = `<i class="fas fa-music"></i> ${_loc('VGMusic.ConfigTitle')}`;
     button.addEventListener('click', (event) => {
       event.preventDefault();
       new VGMusicConfig(token).render(true);
@@ -668,7 +668,7 @@ export function handleTokenConfigRender(app, html, _context, _options) {
       const checkboxGroup = document.createElement('div');
       checkboxGroup.className = 'form-group';
       const checkLabel = document.createElement('label');
-      checkLabel.textContent = game.i18n.localize('VGMusic.UseTokenMusic.Label');
+      checkLabel.textContent = _loc('VGMusic.UseTokenMusic.Label');
       const checkFields = document.createElement('div');
       checkFields.className = 'form-fields';
       const checkbox = document.createElement('input');
@@ -680,12 +680,12 @@ export function handleTokenConfigRender(app, html, _context, _options) {
       checkboxGroup.appendChild(checkFields);
       const hint = document.createElement('p');
       hint.className = 'hint';
-      hint.textContent = game.i18n.localize('VGMusic.UseTokenMusic.Hint');
+      hint.textContent = _loc('VGMusic.UseTokenMusic.Hint');
       checkboxGroup.appendChild(hint);
       formGroup.insertAdjacentElement('afterend', checkboxGroup);
     }
   } catch (error) {
-    console.error('VGMusic | Error adding token config button:', error);
+    ATLAS.log(1, 'Error adding token config button:', error);
   }
 }
 

@@ -12,9 +12,8 @@
   "bugs": "https://github.com/Sayshal/vgmusic/issues",
   "changelog": "https://github.com/Sayshal/vgmusic/releases",
   "compatibility": {
-    "maximum": "13.999",
-    "minimum": "13",
-    "verified": "13.351"
+    "minimum": "14",
+    "verified": "14.364"
   },
   "description": "Your scene's music switches to combat tracks when a fight starts and back to exploration music when it ends, just like a video game! Assign playlists per scene or give individual tokens their own battle themes, and any track that gets cut off resumes where it left off instead of restarting.",
   "download": "",
@@ -23,21 +22,17 @@
   ],
   "flags": {},
   "id": "vgmusic",
-  "languages": [
-    {
-      "lang": "en",
-      "name": "English",
-      "path": "lang/en.json"
-    },
-    {
-      "lang": "pt-BR",
-      "name": "Português (Brasil)",
-      "path": "lang/pt-BR.json"
-    }
-  ],
   "license": "https://github.com/Sayshal/vgmusic?tab=License-1-ov-file",
   "manifest": "https://github.com/Sayshal/vgmusic/releases/latest/download/module.json",
   "readme": "https://github.com/Sayshal/vgmusic?tab=readme-ov-file",
+  "relationships": {
+    "requires": [
+      {
+        "id": "3ds-atlas",
+        "type": "module"
+      }
+    ]
+  },
   "title": "Video Game Music",
   "url": "https://github.com/Sayshal/vgmusic",
   "version": "69.420"
