@@ -71,6 +71,7 @@ jobs:
             templates/ \
             LICENSE \
             module.json \
+            release_notes.txt \
             README.md
 
       # Fetch existing release body if it exists

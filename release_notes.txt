@@ -1,0 +1,2 @@
+**Changes**
+- Dummy release notes for testing ATLAS update messages.
