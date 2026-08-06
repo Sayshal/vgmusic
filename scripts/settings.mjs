@@ -1,5 +1,6 @@
 import { VGMusicConfig } from './app.mjs';
 import { CONST } from './config.mjs';
+import { musicController } from './music-controller.mjs';
 
 /**
  * Register module settings and configuration menu
@@ -19,7 +20,7 @@ export function registerSettings() {
     },
     default: CONST.silentModes.highestPriority,
     onChange: () => {
-      game.vgmusic?.musicController?.playCurrentTrack();
+      musicController.playCurrentTrack();
     }
   });
 
@@ -50,6 +51,16 @@ export function registerSettings() {
     default: 0
   });
 
+  game.settings.register(CONST.moduleId, CONST.settings.nowPlaying, {
+    scope: 'world',
+    config: false,
+    type: Object,
+    default: null,
+    onChange: (value) => {
+      musicController.emitTrackChanged(value);
+    }
+  });
+
   game.settings.register(CONST.moduleId, CONST.settings.suppressArea, {
     name: 'VGMusic.Settings.SuppressArea.Name',
     scope: 'world',
@@ -57,7 +68,7 @@ export function registerSettings() {
     type: Boolean,
     default: false,
     onChange: () => {
-      game.vgmusic?.musicController?.playCurrentTrack();
+      musicController.playCurrentTrack();
     }
   });
 
@@ -68,7 +79,7 @@ export function registerSettings() {
     type: Boolean,
     default: false,
     onChange: () => {
-      game.vgmusic?.musicController?.playCurrentTrack();
+      musicController.playCurrentTrack();
     }
   });
 }

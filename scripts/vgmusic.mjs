@@ -1,5 +1,3 @@
-import { registerSettings, registerKeybindings } from './settings.mjs';
-import { MusicController } from './music-controller.mjs';
 import {
   getSceneControlButtons,
   handleCanvasReady,
@@ -15,14 +13,25 @@ import {
   handleUpdateToken,
   VGMusicConfig
 } from './app.mjs';
+import { registerSection } from './config.mjs';
+import { PlaylistContext } from './helpers.mjs';
+import { musicController } from './music-controller.mjs';
+import { registerKeybindings, registerSettings } from './settings.mjs';
 
 Hooks.once('init', async () => {
   ATLAS.register('vgmusic', { title: 'Video Game Music', github: 'Sayshal/vgmusic' });
   ATLAS.log(3, 'Initializing Video Game Music module');
-  game.vgmusic = { musicController: new MusicController(), VGMusicConfig: VGMusicConfig };
+  globalThis.VGMUSIC = {
+    musicController,
+    VGMusicConfig: VGMusicConfig,
+    PlaylistContext,
+    registerSection,
+    requestSuppression: (context) => musicController.requestSuppression(context),
+    releaseSuppression: (token) => musicController.releaseSuppression(token)
+  };
   registerSettings();
   registerKeybindings();
-  await loadTemplates(['modules/vgmusic/templates/music-config.hbs']);
+  await foundry.applications.handlebars.loadTemplates(['modules/vgmusic/templates/music-config.hbs']);
 });
 Hooks.once('ready', handleReady);
 Hooks.on('getSceneControlButtons', getSceneControlButtons);

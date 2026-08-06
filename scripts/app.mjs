@@ -1,5 +1,6 @@
-import { CONST } from './config.mjs';
+import { CONST, getSections } from './config.mjs';
 import { getProperty } from './helpers.mjs';
+import { musicController } from './music-controller.mjs';
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 const { DragDrop } = foundry.applications.ux;
@@ -80,7 +81,7 @@ export class VGMusicConfig extends HandlebarsApplicationMixin(ApplicationV2) {
   initializeConfig() {
     try {
       const docType = this.documentTypeName;
-      const sections = CONST.playlistSections[docType];
+      const sections = getSections(docType);
       if (!sections) {
         ATLAS.log(1, 'No sections found for document type:', docType);
         this.config = [];
@@ -317,7 +318,7 @@ export class VGMusicConfig extends HandlebarsApplicationMixin(ApplicationV2) {
         sound = document;
       } else if (document instanceof Playlist) playlist = document;
       else return false;
-      const sectionConfig = CONST.playlistSections[this.documentTypeName][section];
+      const sectionConfig = getSections(this.documentTypeName)?.[section];
       if (!sectionConfig) return false;
       const updateData = { [`music.${section}.playlist`]: playlist.id, [`music.${section}.initialTrack`]: sound?.id || '' };
       const currentData = getProperty(this.document, this.updateDataPrefix) || {};
@@ -468,7 +469,7 @@ export class VGMusicConfig extends HandlebarsApplicationMixin(ApplicationV2) {
     if (Object.keys(updateData).length > 0) {
       try {
         await this.updateObject(updateData);
-        game.vgmusic?.musicController?.playCurrentTrack();
+        musicController.playCurrentTrack();
         this.close();
       } catch (error) {
         ATLAS.log(1, 'Error updating data:', error);
@@ -563,14 +564,14 @@ export function handleSceneConfigRender(app, html) {
  * @param {object} updateData - The update data
  */
 export function handleUpdateCombat(combat, updateData) {
-  if (combat.started && (updateData.turn != null || updateData.round != null)) game.vgmusic?.musicController?.playCurrentTrack();
+  if (combat.started && (updateData.turn != null || updateData.round != null)) musicController.playCurrentTrack();
 }
 
 /**
  * Handle combat deletion to stop music
  */
 export function handleDeleteCombat() {
-  game.vgmusic?.musicController?.playCurrentTrack();
+  musicController.playCurrentTrack();
 }
 
 /**
@@ -578,7 +579,7 @@ export function handleDeleteCombat() {
  * @param {object} combatant - The created combatant
  */
 export function handleCreateCombatant(combatant) {
-  if (combatant.parent?.started) game.vgmusic?.musicController?.playCurrentTrack();
+  if (combatant.parent?.started) musicController.playCurrentTrack();
 }
 
 /**
@@ -586,14 +587,14 @@ export function handleCreateCombatant(combatant) {
  * @param {object} combatant - The deleted combatant
  */
 export function handleDeleteCombatant(combatant) {
-  if (combatant.parent?.started) game.vgmusic?.musicController?.playCurrentTrack();
+  if (combatant.parent?.started) musicController.playCurrentTrack();
 }
 
 /**
  * Handle canvas ready to start music
  */
 export function handleCanvasReady() {
-  game.vgmusic?.musicController?.playCurrentTrack();
+  musicController.playCurrentTrack();
 }
 
 /**
@@ -602,10 +603,10 @@ export function handleCanvasReady() {
  * @param {object} updateData - The update data
  */
 export function handleUpdateScene(scene, updateData) {
-  if ('flags' in updateData && updateData.flags?.[CONST.moduleId]) game.vgmusic?.musicController?.playCurrentTrack();
+  if ('flags' in updateData && updateData.flags?.[CONST.moduleId]) musicController.playCurrentTrack();
   if ('active' in updateData) {
     if (updateData.active !== true) scene.unsetFlag(CONST.moduleId, 'playlist').catch(() => {});
-    game.vgmusic?.musicController?.playCurrentTrack();
+    musicController.playCurrentTrack();
   }
 }
 
@@ -615,7 +616,7 @@ export function handleUpdateScene(scene, updateData) {
  * @param {object} updateData - The update data
  */
 export function handleUpdateActor(_actor, updateData) {
-  if ('flags' in updateData && updateData.flags?.[CONST.moduleId]) game.vgmusic?.musicController?.playCurrentTrack();
+  if ('flags' in updateData && updateData.flags?.[CONST.moduleId]) musicController.playCurrentTrack();
 }
 
 /**
@@ -624,7 +625,7 @@ export function handleUpdateActor(_actor, updateData) {
  * @param {object} updateData - The update data
  */
 export function handleUpdateToken(_token, updateData) {
-  if ('flags' in updateData && updateData.flags?.[CONST.moduleId]) game.vgmusic?.musicController?.playCurrentTrack();
+  if ('flags' in updateData && updateData.flags?.[CONST.moduleId]) musicController.playCurrentTrack();
 }
 
 /**
@@ -693,7 +694,8 @@ export function handleTokenConfigRender(app, html, _context, _options) {
  * Handle game ready to start music after delay
  */
 export async function handleReady() {
+  musicController.lastNowPlaying = game.settings.get(CONST.moduleId, CONST.settings.nowPlaying);
   setTimeout(() => {
-    game.vgmusic?.musicController?.playCurrentTrack();
+    musicController.playCurrentTrack();
   }, 1000);
 }

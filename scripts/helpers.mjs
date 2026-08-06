@@ -1,4 +1,5 @@
 import { CONST } from './config.mjs';
+import { musicController } from './music-controller.mjs';
 
 /**
  * Utility helper functions
@@ -130,12 +131,10 @@ export class FadingTrack {
    * Remove this fading track from the controller
    */
   delete() {
-    const controller = game.vgmusic?.musicController;
-    if (!controller) return;
-    const index = controller.fadingTracks.indexOf(this);
+    const index = musicController.fadingTracks.indexOf(this);
     if (index >= 0) {
-      controller.fadingTracks.splice(index, 1);
-      if (controller.currentTrack === this.track) controller.playCurrentTrack();
+      musicController.fadingTracks.splice(index, 1);
+      if (musicController.currentTrack === this.track) musicController.playCurrentTrack();
     }
   }
 }
