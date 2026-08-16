@@ -9,7 +9,9 @@ export const CONST = {
     suppressArea: 'suppressArea',
     suppressCombat: 'suppressCombat',
     fadeDuration: 'fadeDuration',
-    nowPlaying: 'nowPlaying'
+    nowPlaying: 'nowPlaying',
+    nowPlayingWidget: 'nowPlayingWidget',
+    nowPlayingMuted: 'nowPlayingMuted'
   },
   silentModes: { highestPriority: 'highestPriority', lastActor: 'lastActor', area: 'area', generic: 'generic' },
   playlistSections: {

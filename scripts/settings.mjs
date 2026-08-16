@@ -2,6 +2,18 @@ import { VGMusicConfig } from './app.mjs';
 import { CONST } from './config.mjs';
 import { musicController } from './music-controller.mjs';
 
+const { SetField, StringField } = foundry.data.fields;
+
+/** Calendaria insertion points the now-playing widget can occupy */
+const WIDGET_POINT_CHOICES = {
+  'hud.indicators': 'VGMusic.Settings.NowPlayingWidget.HudIndicators',
+  'hud.tray': 'VGMusic.Settings.NowPlayingWidget.HudTray',
+  'hud.buttons.left': 'VGMusic.Settings.NowPlayingWidget.HudButtonsLeft',
+  'hud.buttons.right': 'VGMusic.Settings.NowPlayingWidget.HudButtonsRight',
+  'minical.sidebar': 'VGMusic.Settings.NowPlayingWidget.MiniCalSidebar',
+  'bigcal.actions': 'VGMusic.Settings.NowPlayingWidget.BigCalActions'
+};
+
 /**
  * Register module settings and configuration menu
  */
@@ -59,6 +71,23 @@ export function registerSettings() {
     onChange: (value) => {
       musicController.emitTrackChanged(value);
     }
+  });
+
+  game.settings.register(CONST.moduleId, CONST.settings.nowPlayingWidget, {
+    name: 'VGMusic.Settings.NowPlayingWidget.Name',
+    hint: 'VGMusic.Settings.NowPlayingWidget.Hint',
+    scope: 'world',
+    config: !!game.modules.get('calendaria')?.active,
+    type: new SetField(new StringField({ choices: WIDGET_POINT_CHOICES, blank: false })),
+    default: ['hud.indicators'],
+    requiresReload: true
+  });
+
+  game.settings.register(CONST.moduleId, CONST.settings.nowPlayingMuted, {
+    scope: 'client',
+    config: false,
+    type: Boolean,
+    default: false
   });
 
   game.settings.register(CONST.moduleId, CONST.settings.suppressArea, {

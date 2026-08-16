@@ -1,5 +1,6 @@
 import { CONST, getSections } from './config.mjs';
 import { getProperty } from './helpers.mjs';
+import { registerCalendariaWidget } from './integrations/calendaria.mjs';
 import { musicController } from './music-controller.mjs';
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -695,6 +696,7 @@ export function handleTokenConfigRender(app, html, _context, _options) {
  */
 export async function handleReady() {
   musicController.lastNowPlaying = game.settings.get(CONST.moduleId, CONST.settings.nowPlaying);
+  registerCalendariaWidget();
   setTimeout(() => {
     musicController.playCurrentTrack();
   }, 1000);
