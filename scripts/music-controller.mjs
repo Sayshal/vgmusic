@@ -1,5 +1,7 @@
-import { CONST, getRegisteredSections } from './config.mjs';
-import { isContextSuppressed, isHeadGM, PlaylistContext } from './helpers.mjs';
+import { DOCUMENT_SORT_PRIORITY, HOOKS, MODULE, SETTINGS, SILENT_MODES } from './constants.mjs';
+import { PlaylistContext } from './playlist-context.mjs';
+import { getRegisteredSections } from './section-registry.mjs';
+import { isContextSuppressed, isHeadGM } from './utils.mjs';
 
 /**
  * Get document type name, treating PrototypeToken as 'Token'
@@ -58,7 +60,7 @@ export class MusicController {
   get currentTrackInfo() {
     if (!this.currentTrack) return {};
     const track = this.currentTrack;
-    const info = this.currentContext?.scopeEntity?.getFlag(CONST.moduleId, `playlist.${track.parent.id}.${track.id}`);
+    const info = this.currentContext?.scopeEntity?.getFlag(MODULE.ID, `playlist.${track.parent.id}.${track.id}`);
     return info;
   }
 
@@ -87,17 +89,17 @@ export class MusicController {
    */
   _getCombatantMusicSource(token, actor) {
     if (!token && !actor) return null;
-    const tokenHasMusic = token?.getFlag(CONST.moduleId, 'music.combat.playlist');
+    const tokenHasMusic = token?.getFlag(MODULE.ID, 'music.combat.playlist');
     const prototypeToken = actor?.prototypeToken;
-    const prototypeHasMusic = prototypeToken?.flags?.[CONST.moduleId]?.music?.combat?.playlist;
-    const actorHasMusic = actor?.getFlag(CONST.moduleId, 'music.combat.playlist');
+    const prototypeHasMusic = prototypeToken?.flags?.[MODULE.ID]?.music?.combat?.playlist;
+    const actorHasMusic = actor?.getFlag(MODULE.ID, 'music.combat.playlist');
     if (token && !token.actorLink) {
       if (tokenHasMusic) return token;
       return actorHasMusic ? actor : null;
     }
     if (token && token.actorLink) {
       if (tokenHasMusic) {
-        const useTokenMusic = token.getFlag(CONST.moduleId, 'useTokenMusic');
+        const useTokenMusic = token.getFlag(MODULE.ID, 'useTokenMusic');
         if (useTokenMusic || (!prototypeHasMusic && !actorHasMusic)) return token;
       }
       if (prototypeHasMusic) return prototypeToken;
@@ -131,7 +133,7 @@ export class MusicController {
       }
     }
     if (combat) {
-      const defaultConfig = game.settings.get(CONST.moduleId, CONST.settings.defaultMusic);
+      const defaultConfig = game.settings.get(MODULE.ID, SETTINGS.DEFAULT_MUSIC);
       if (defaultConfig) {
         const ctx = PlaylistContext.fromDocument(defaultConfig, 'combat', combat);
         if (ctx) contexts.push(ctx);
@@ -161,7 +163,7 @@ export class MusicController {
     const combat = this.currentCombat;
     if (scene && types.includes('Scene')) sources.push(scene);
     if (types.includes('DefaultMusic')) {
-      const defaultConfig = game.settings.get(CONST.moduleId, CONST.settings.defaultMusic);
+      const defaultConfig = game.settings.get(MODULE.ID, SETTINGS.DEFAULT_MUSIC);
       if (defaultConfig) sources.push(defaultConfig);
     }
     if (combat && (types.includes('Token') || types.includes('Actor'))) {
@@ -262,8 +264,8 @@ export class MusicController {
     const isCurrentB = b.contextEntity === currentToken || b.contextEntity === currentActor || b.contextEntity === currentPrototype;
     if (isCurrentA && !isCurrentB) return -1;
     if (isCurrentB && !isCurrentA) return 1;
-    const silentMode = game.settings.get(CONST.moduleId, CONST.settings.silentCombatMusicMode);
-    if (silentMode === CONST.silentModes.lastActor) {
+    const silentMode = game.settings.get(MODULE.ID, SETTINGS.SILENT_COMBAT_MUSIC_MODE);
+    if (silentMode === SILENT_MODES.LAST_ACTOR) {
       const combatants = combat?.turns || [];
       const startIdx = combat?.current?.turn || 0;
       if (startIdx >= 0 && combatants.length > 0) {
@@ -276,8 +278,8 @@ export class MusicController {
           if (b.contextEntity === actor || b.contextEntity === prototype) return 1;
         } while (i !== (startIdx + 1) % combatants.length);
       }
-    } else if (silentMode === CONST.silentModes.area || silentMode === CONST.silentModes.generic) {
-      const preferred = silentMode === CONST.silentModes.area ? 'area' : 'combat';
+    } else if (silentMode === SILENT_MODES.AREA || silentMode === SILENT_MODES.GENERIC) {
+      const preferred = silentMode === SILENT_MODES.AREA ? 'area' : 'combat';
       const aPreferred = getEntityTypeName(a.contextEntity) !== 'Actor' && a.context === preferred;
       const bPreferred = getEntityTypeName(b.contextEntity) !== 'Actor' && b.context === preferred;
       if (aPreferred !== bPreferred) return aPreferred ? -1 : 1;
@@ -286,7 +288,7 @@ export class MusicController {
     const aTypeName = getEntityTypeName(a.contextEntity);
     const bTypeName = getEntityTypeName(b.contextEntity);
     if (aTypeName !== bTypeName) {
-      const priorities = CONST.documentSortPriority;
+      const priorities = DOCUMENT_SORT_PRIORITY;
       return priorities.indexOf(bTypeName) - priorities.indexOf(aTypeName);
     }
     return 0;
@@ -329,22 +331,10 @@ export class MusicController {
    * @param {PlaylistContext|null} context - The context about to play
    */
   async stopOrphanedTrack(context) {
-    const orphan = this.resolveNowPlaying(game.settings.get(CONST.moduleId, CONST.settings.nowPlaying));
+    const orphan = this.resolveNowPlaying(game.settings.get(MODULE.ID, SETTINGS.NOW_PLAYING));
     if (!orphan || orphan === context?.track || !orphan.playing) return;
     ATLAS.log(3, `Stopping ${orphan.name}, left playing by a previous session`);
     await orphan.update({ playing: false, pausedTime: null });
-  }
-
-  /**
-   * Get playlist data for a track
-   * @param {Document} entity - Entity to get data from
-   * @param {string} playlistId - Playlist ID
-   * @param {string} trackId - Track ID
-   * @returns {object} Playlist data
-   */
-  getPlaylistData(entity, playlistId, trackId) {
-    const data = entity.getFlag(CONST.moduleId, `playlist.${playlistId}.${trackId}`);
-    return data || { id: playlistId, trackId, start: 0 };
   }
 
   /**
@@ -356,7 +346,7 @@ export class MusicController {
     if (!this.currentTrack || !entity || !isHeadGM()) return;
     const track = this.currentTrack;
     const flagData = { id: track.parent.id, trackId: track.id, start: (track.sound?.currentTime ?? 0) % (track.sound?.duration ?? 100) };
-    await entity.setFlag(CONST.moduleId, `playlist.${track.parent.id}.${track.id}`, flagData);
+    await entity.setFlag(MODULE.ID, `playlist.${track.parent.id}.${track.id}`, flagData);
   }
 
   /**
@@ -394,9 +384,9 @@ export class MusicController {
     if (!isHeadGM()) return;
     const track = context?.track;
     const value = track ? { playlistId: track.parent.id, trackId: track.id, name: track.name, context: context.context } : null;
-    const stored = game.settings.get(CONST.moduleId, CONST.settings.nowPlaying);
+    const stored = game.settings.get(MODULE.ID, SETTINGS.NOW_PLAYING);
     if (this.sameNowPlaying(stored, value)) return;
-    await game.settings.set(CONST.moduleId, CONST.settings.nowPlaying, value);
+    await game.settings.set(MODULE.ID, SETTINGS.NOW_PLAYING, value);
   }
 
   /**
@@ -430,7 +420,7 @@ export class MusicController {
     if (this.sameNowPlaying(previous, value)) return;
     const prev = this.resolveNowPlaying(previous);
     const current = this.resolveNowPlaying(value);
-    Hooks.callAll('vgmusic.trackChanged', { prev, current, context: value?.context ?? null });
+    Hooks.callAll(HOOKS.TRACK_CHANGED, { prev, current, context: value?.context ?? null });
   }
 }
 

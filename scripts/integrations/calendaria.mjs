@@ -1,6 +1,6 @@
-import { CONST } from '../config.mjs';
-import { isContextSuppressed, setContextSuppressed } from '../helpers.mjs';
+import { HOOKS, MODULE, SETTINGS } from '../constants.mjs';
 import { musicController } from '../music-controller.mjs';
+import { isContextSuppressed, setContextSuppressed } from '../utils.mjs';
 
 /** Insertion points that render a full button rather than an indicator */
 const BUTTON_POINTS = new Set(['hud.buttons.left', 'hud.buttons.right']);
@@ -30,7 +30,7 @@ function isSuppressed() {
  * @returns {object|null} Stored now-playing value
  */
 function getMirror() {
-  return game.settings.get(CONST.moduleId, CONST.settings.nowPlaying);
+  return game.settings.get(MODULE.ID, SETTINGS.NOW_PLAYING);
 }
 
 /**
@@ -38,7 +38,7 @@ function getMirror() {
  * @returns {boolean} True if muted locally
  */
 function isMuted() {
-  return game.settings.get(CONST.moduleId, CONST.settings.nowPlayingMuted);
+  return game.settings.get(MODULE.ID, SETTINGS.NOW_PLAYING_MUTED);
 }
 
 /**
@@ -109,7 +109,7 @@ async function onClick() {
     if (!context) return;
     await setContextSuppressed(context, !isContextSuppressed(context));
   } else {
-    await game.settings.set(CONST.moduleId, CONST.settings.nowPlayingMuted, !isMuted());
+    await game.settings.set(MODULE.ID, SETTINGS.NOW_PLAYING_MUTED, !isMuted());
     applyMute();
   }
   CALENDARIA.api.refreshWidgets();
@@ -118,10 +118,10 @@ async function onClick() {
 /** Register the now-playing widget at every configured insertion point */
 export function registerCalendariaWidget() {
   if (!game.modules.get('calendaria')?.active || !globalThis.CALENDARIA?.api) return;
-  const points = game.settings.get(CONST.moduleId, CONST.settings.nowPlayingWidget);
+  const points = game.settings.get(MODULE.ID, SETTINGS.NOW_PLAYING_WIDGET);
   if (!points.size) return;
   for (const point of points) {
-    CALENDARIA.api.registerWidget(CONST.moduleId, {
+    CALENDARIA.api.registerWidget(MODULE.ID, {
       id: `now-playing-${point.replaceAll('.', '-')}`,
       type: BUTTON_POINTS.has(point) ? 'button' : 'indicator',
       insertAt: point,
@@ -132,7 +132,7 @@ export function registerCalendariaWidget() {
       onClick
     });
   }
-  Hooks.on('vgmusic.trackChanged', () => {
+  Hooks.on(HOOKS.TRACK_CHANGED, () => {
     applyMute();
     CALENDARIA.api.refreshWidgets();
   });
@@ -141,6 +141,6 @@ export function registerCalendariaWidget() {
     applyMute();
     CALENDARIA.api.refreshWidgets();
   });
-  Hooks.on('vgmusic.suppressionChanged', () => CALENDARIA.api.refreshWidgets());
+  Hooks.on(HOOKS.SUPPRESSION_CHANGED, () => CALENDARIA.api.refreshWidgets());
   game.audio.unlock.then(applyMute);
 }

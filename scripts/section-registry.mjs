@@ -1,25 +1,4 @@
-/**
- * Configuration constants for the VGMusic module
- */
-export const CONST = {
-  moduleId: 'vgmusic',
-  settings: {
-    silentCombatMusicMode: 'silentCombatMusicMode',
-    defaultMusic: 'defaultMusic',
-    suppressedContexts: 'suppressedContexts',
-    nowPlaying: 'nowPlaying',
-    nowPlayingWidget: 'nowPlayingWidget',
-    nowPlayingMuted: 'nowPlayingMuted'
-  },
-  silentModes: { highestPriority: 'highestPriority', lastActor: 'lastActor', area: 'area', generic: 'generic' },
-  playlistSections: {
-    DefaultMusic: { combat: { label: 'VGMusic.PlaylistSection.Combat', priority: -5 } },
-    Scene: { area: { label: 'VGMusic.PlaylistSection.Area', priority: -20 }, combat: { label: 'VGMusic.PlaylistSection.Combat', priority: -10 } },
-    Actor: { combat: { label: 'VGMusic.PlaylistSection.Combat', priority: 0 } },
-    Token: { combat: { label: 'VGMusic.PlaylistSection.Combat', priority: 5 } }
-  },
-  documentSortPriority: ['Token', 'Actor', 'Scene', 'DefaultMusic']
-};
+import { PLAYLIST_SECTIONS } from './constants.mjs';
 
 const registeredSections = new Map();
 
@@ -94,7 +73,7 @@ export function getRegisteredSections() {
  * @returns {object|undefined} Sections keyed by context, or undefined when the type has none
  */
 export function getSections(docType) {
-  const builtin = CONST.playlistSections[docType];
+  const builtin = PLAYLIST_SECTIONS[docType];
   const registered = getRegisteredSections().filter((section) => section.types.includes(docType));
   const sections = { ...builtin };
   for (const section of registered) sections[section.contextKey] = { label: section.label, priority: section.priority };

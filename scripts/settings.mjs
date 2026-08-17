@@ -1,7 +1,7 @@
-import { VGMusicConfig } from './app.mjs';
-import { CONST } from './config.mjs';
-import { isContextSuppressed, setContextSuppressed } from './helpers.mjs';
+import { VGMusicConfig } from './apps/music-config.mjs';
+import { HOOKS, KEYBINDS, MODULE, SETTINGS, SILENT_MODES } from './constants.mjs';
 import { musicController } from './music-controller.mjs';
+import { isContextSuppressed, setContextSuppressed } from './utils.mjs';
 
 const { SetField, StringField } = foundry.data.fields;
 
@@ -19,25 +19,25 @@ const WIDGET_POINT_CHOICES = {
  * Register module settings and configuration menu
  */
 export function registerSettings() {
-  game.settings.register(CONST.moduleId, CONST.settings.silentCombatMusicMode, {
+  game.settings.register(MODULE.ID, SETTINGS.SILENT_COMBAT_MUSIC_MODE, {
     name: 'VGMusic.Settings.SilentCombatMusicMode.Name',
     hint: 'VGMusic.Settings.SilentCombatMusicMode.Hint',
     scope: 'world',
     config: true,
     type: String,
     choices: {
-      [CONST.silentModes.highestPriority]: 'VGMusic.Settings.SilentCombatMusicMode.HighestPriority',
-      [CONST.silentModes.lastActor]: 'VGMusic.Settings.SilentCombatMusicMode.LastActor',
-      [CONST.silentModes.area]: 'VGMusic.Settings.SilentCombatMusicMode.Area',
-      [CONST.silentModes.generic]: 'VGMusic.Settings.SilentCombatMusicMode.Generic'
+      [SILENT_MODES.HIGHEST_PRIORITY]: 'VGMusic.Settings.SilentCombatMusicMode.HighestPriority',
+      [SILENT_MODES.LAST_ACTOR]: 'VGMusic.Settings.SilentCombatMusicMode.LastActor',
+      [SILENT_MODES.AREA]: 'VGMusic.Settings.SilentCombatMusicMode.Area',
+      [SILENT_MODES.GENERIC]: 'VGMusic.Settings.SilentCombatMusicMode.Generic'
     },
-    default: CONST.silentModes.highestPriority,
+    default: SILENT_MODES.HIGHEST_PRIORITY,
     onChange: () => {
       musicController.playCurrentTrack();
     }
   });
 
-  game.settings.registerMenu(CONST.moduleId, 'defaultMusicMenu', {
+  game.settings.registerMenu(MODULE.ID, 'defaultMusicMenu', {
     name: 'VGMusic.Settings.DefaultMusic.Name',
     label: 'VGMusic.Settings.DefaultMusic.Label',
     hint: 'VGMusic.Settings.DefaultMusic.Hint',
@@ -46,15 +46,15 @@ export function registerSettings() {
     restricted: true
   });
 
-  game.settings.register(CONST.moduleId, CONST.settings.defaultMusic, {
+  game.settings.register(MODULE.ID, SETTINGS.DEFAULT_MUSIC, {
     name: 'VGMusic.Settings.DefaultMusic.Name',
     scope: 'world',
     config: false,
     type: Object,
-    default: { documentName: 'DefaultMusic', data: { vgmusic: { music: {} } } }
+    default: { documentName: 'DefaultMusic', data: { [MODULE.ID]: { music: {} } } }
   });
 
-  game.settings.register(CONST.moduleId, CONST.settings.nowPlaying, {
+  game.settings.register(MODULE.ID, SETTINGS.NOW_PLAYING, {
     scope: 'world',
     config: false,
     type: Object,
@@ -64,7 +64,7 @@ export function registerSettings() {
     }
   });
 
-  game.settings.register(CONST.moduleId, CONST.settings.nowPlayingWidget, {
+  game.settings.register(MODULE.ID, SETTINGS.NOW_PLAYING_WIDGET, {
     name: 'VGMusic.Settings.NowPlayingWidget.Name',
     hint: 'VGMusic.Settings.NowPlayingWidget.Hint',
     scope: 'world',
@@ -74,21 +74,21 @@ export function registerSettings() {
     requiresReload: true
   });
 
-  game.settings.register(CONST.moduleId, CONST.settings.nowPlayingMuted, {
+  game.settings.register(MODULE.ID, SETTINGS.NOW_PLAYING_MUTED, {
     scope: 'client',
     config: false,
     type: Boolean,
     default: false
   });
 
-  game.settings.register(CONST.moduleId, CONST.settings.suppressedContexts, {
+  game.settings.register(MODULE.ID, SETTINGS.SUPPRESSED_CONTEXTS, {
     scope: 'world',
     config: false,
     type: new SetField(new StringField({ blank: false })),
     default: [],
     onChange: (value) => {
       musicController.playCurrentTrack();
-      Hooks.callAll('vgmusic.suppressionChanged', value);
+      Hooks.callAll(HOOKS.SUPPRESSION_CHANGED, value);
     }
   });
 }
@@ -97,13 +97,13 @@ export function registerSettings() {
  * Register keybindings
  */
 export function registerKeybindings() {
-  game.keybindings.register(CONST.moduleId, 'toggleAreaMusic', {
+  game.keybindings.register(MODULE.ID, KEYBINDS.TOGGLE_AREA_MUSIC, {
     name: 'VGMusic.Keybindings.ToggleAreaMusic',
     restricted: true,
     onDown: () => toggleAreaMusic()
   });
 
-  game.keybindings.register(CONST.moduleId, 'toggleCombatMusic', {
+  game.keybindings.register(MODULE.ID, KEYBINDS.TOGGLE_COMBAT_MUSIC, {
     name: 'VGMusic.Keybindings.ToggleCombatMusic',
     restricted: true,
     onDown: () => toggleCombatMusic()
