@@ -1,5 +1,5 @@
 import { CONST, getRegisteredSections } from './config.mjs';
-import { isHeadGM, PlaylistContext } from './helpers.mjs';
+import { isContextSuppressed, isHeadGM, PlaylistContext } from './helpers.mjs';
 
 /**
  * Get document type name, treating PrototypeToken as 'Token'
@@ -137,9 +137,13 @@ export class MusicController {
       }
     }
     for (const section of getRegisteredSections()) {
-      for (const source of this._getSectionSources(section.types)) {
-        const ctx = PlaylistContext.fromDocument(source, section.contextKey, scene);
-        if (ctx) contexts.push(ctx);
+      try {
+        for (const source of this._getSectionSources(section.types)) {
+          const ctx = PlaylistContext.fromDocument(source, section.contextKey, scene);
+          if (ctx) contexts.push(ctx);
+        }
+      } catch (error) {
+        ATLAS.log(1, `Section "${section.id}" failed to resolve its music sources:`, error);
       }
     }
     return contexts;
@@ -195,6 +199,10 @@ export class MusicController {
    * @returns {object} Opaque token to pass back to releaseSuppression
    */
   requestSuppression(context) {
+    if (!isHeadGM()) {
+      ATLAS.log(2, 'Suppression tokens are a head GM operation, ignoring this request');
+      return null;
+    }
     const token = { context };
     this.suppressionTokens.add(token);
     this.suppressionCounts.set(context, (this.suppressionCounts.get(context) ?? 0) + 1);
@@ -221,9 +229,7 @@ export class MusicController {
    */
   isSuppressed(context) {
     if ((this.suppressionCounts.get(context) ?? 0) > 0) return true;
-    if (context === 'area') return game.settings.get(CONST.moduleId, CONST.settings.suppressArea);
-    if (context === 'combat') return game.settings.get(CONST.moduleId, CONST.settings.suppressCombat);
-    return false;
+    return isContextSuppressed(context);
   }
 
   /**

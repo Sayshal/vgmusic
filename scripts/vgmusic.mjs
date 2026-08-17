@@ -14,10 +14,30 @@ import {
   handleUserConnected,
   VGMusicConfig
 } from './app.mjs';
-import { registerSection } from './config.mjs';
+import { getRegisteredSections, registerSection, unregisterSection } from './config.mjs';
 import { PlaylistContext } from './helpers.mjs';
 import { musicController } from './music-controller.mjs';
 import { registerKeybindings, registerSettings } from './settings.mjs';
+
+/**
+ * Register a playlist section and hand back a handle for its lifetime
+ * @param {object} definition - Section definition, see registerSection
+ * @returns {object|null} Handle exposing unregister and refresh, or null when the definition was rejected
+ */
+function registerSectionHandle(definition) {
+  const section = registerSection(definition);
+  if (!section) return null;
+  musicController.playCurrentTrack();
+  return {
+    id: section.id,
+    contextKey: section.contextKey,
+    unregister: () => {
+      unregisterSection(section.id);
+      musicController.playCurrentTrack();
+    },
+    refresh: () => musicController.playCurrentTrack()
+  };
+}
 
 Hooks.once('init', async () => {
   ATLAS.register('vgmusic', { title: 'Video Game Music', github: 'Sayshal/vgmusic' });
@@ -26,7 +46,10 @@ Hooks.once('init', async () => {
     musicController,
     VGMusicConfig: VGMusicConfig,
     PlaylistContext,
-    registerSection,
+    registerSection: registerSectionHandle,
+    unregisterSection,
+    getRegisteredSections,
+    refreshSections: () => musicController.playCurrentTrack(),
     requestSuppression: (context) => musicController.requestSuppression(context),
     releaseSuppression: (token) => musicController.releaseSuppression(token)
   };

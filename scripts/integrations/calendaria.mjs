@@ -1,12 +1,26 @@
 import { CONST } from '../config.mjs';
-import { isHeadGM } from '../helpers.mjs';
+import { isContextSuppressed, setContextSuppressed } from '../helpers.mjs';
 import { musicController } from '../music-controller.mjs';
-
-/** @type {object|null} Suppression token held by this client's widget toggle */
-let suppressionToken = null;
 
 /** Insertion points that render a full button rather than an indicator */
 const BUTTON_POINTS = new Set(['hud.buttons.left', 'hud.buttons.right']);
+
+/**
+ * Get the context the widget acts on, preferring the head GM's live state over the mirror
+ * @returns {string|null} Context key, or null when nothing is playing
+ */
+function currentContext() {
+  return musicController.currentContext?.context ?? getMirror()?.context ?? null;
+}
+
+/**
+ * Check whether the context the widget acts on is suppressed
+ * @returns {boolean} True if the GM has suppressed it
+ */
+function isSuppressed() {
+  const context = currentContext();
+  return !!context && isContextSuppressed(context);
+}
 
 /**
  * Get the mirrored now-playing value
@@ -31,7 +45,7 @@ function applyMute() {
   const track = musicController.resolveNowPlaying(getMirror());
   const sound = track?.sound;
   if (!sound) return;
-  const volume = isMuted() && !isHeadGM() ? 0 : track.volume;
+  const volume = isMuted() && !game.user.isGM ? 0 : track.volume;
   if (sound.playing) sound.volume = volume;
   else sound.addEventListener('play', () => (sound.volume = volume), { once: true });
 }
@@ -49,7 +63,7 @@ function onUpdatePlaylistSound(sound) {
  * @returns {string} Icon classes
  */
 function getIcon() {
-  if (isHeadGM() ? suppressionToken : isMuted()) return 'fas fa-volume-xmark';
+  if (game.user.isGM ? isSuppressed() : isMuted()) return 'fas fa-volume-xmark';
   return 'fas fa-music';
 }
 
@@ -58,7 +72,7 @@ function getIcon() {
  * @returns {string} CSS color, or an empty string for the theme default
  */
 function getColor() {
-  if (isHeadGM() ? suppressionToken : isMuted()) return 'rgb(200 80 80)';
+  if (game.user.isGM ? isSuppressed() : isMuted()) return 'rgb(200 80 80)';
   return getMirror() ? 'rgb(110 190 120)' : '';
 }
 
@@ -67,26 +81,19 @@ function getColor() {
  * @returns {string} Tooltip text
  */
 function getTooltip() {
-  if (isHeadGM() && suppressionToken) return game.i18n.localize('VGMusic.NowPlaying.Release');
+  if (game.user.isGM && isSuppressed()) return game.i18n.localize('VGMusic.NowPlaying.Release');
   const track = getMirror()?.name;
   if (!track) return game.i18n.localize('VGMusic.NowPlaying.Nothing');
-  const key = isHeadGM() ? 'Suppress' : isMuted() ? 'Unmute' : 'Mute';
+  const key = game.user.isGM ? 'Suppress' : isMuted() ? 'Unmute' : 'Mute';
   return game.i18n.format(`VGMusic.NowPlaying.${key}`, { track });
 }
 
-/**
- * Toggle suppression for the head GM, or local mute for everyone else
- */
+/** Suppress the playing context for every client as a GM, or mute locally as a player */
 async function onClick() {
-  if (isHeadGM()) {
-    if (suppressionToken) {
-      musicController.releaseSuppression(suppressionToken);
-      suppressionToken = null;
-    } else {
-      const context = musicController.currentContext?.context;
-      if (!context) return;
-      suppressionToken = musicController.requestSuppression(context);
-    }
+  if (game.user.isGM) {
+    const context = currentContext();
+    if (!context) return;
+    await setContextSuppressed(context, !isContextSuppressed(context));
   } else {
     await game.settings.set(CONST.moduleId, CONST.settings.nowPlayingMuted, !isMuted());
     applyMute();
@@ -94,9 +101,7 @@ async function onClick() {
   CALENDARIA.api.refreshWidgets();
 }
 
-/**
- * Register the now-playing widget at every configured insertion point
- */
+/** Register the now-playing widget at every configured insertion point */
 export function registerCalendariaWidget() {
   if (!game.modules.get('calendaria')?.active || !globalThis.CALENDARIA?.api) return;
   const points = game.settings.get(CONST.moduleId, CONST.settings.nowPlayingWidget);
@@ -121,5 +126,6 @@ export function registerCalendariaWidget() {
     applyMute();
     CALENDARIA.api.refreshWidgets();
   });
+  Hooks.on('vgmusic.suppressionChanged', () => CALENDARIA.api.refreshWidgets());
   game.audio.unlock.then(applyMute);
 }

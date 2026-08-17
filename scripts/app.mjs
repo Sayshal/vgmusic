@@ -1,5 +1,5 @@
 import { CONST, getSections } from './config.mjs';
-import { getProperty } from './helpers.mjs';
+import { getProperty, isContextSuppressed, setContextSuppressed } from './helpers.mjs';
 import { registerCalendariaWidget } from './integrations/calendaria.mjs';
 import { musicController } from './music-controller.mjs';
 
@@ -324,7 +324,10 @@ export class VGMusicConfig extends HandlebarsApplicationMixin(ApplicationV2) {
       const updateData = { [`music.${section}.playlist`]: playlist.id, [`music.${section}.initialTrack`]: sound?.id || '' };
       const currentData = getProperty(this.document, this.updateDataPrefix) || {};
       const prevData = getProperty(currentData, `music.${section}`);
-      if (!prevData?.priority) updateData[`music.${section}.priority`] = sectionConfig.priority;
+      if (prevData?.priority === undefined || prevData.priority === prevData.seededPriority) {
+        updateData[`music.${section}.priority`] = sectionConfig.priority;
+        updateData[`music.${section}.seededPriority`] = sectionConfig.priority;
+      }
       await this.updateObject(updateData);
       return true;
     } catch {
@@ -498,10 +501,8 @@ export function getSceneControlButtons(controls) {
         icon: 'fas fa-dungeon',
         toggle: true,
         visible: true,
-        active: game.settings.get(CONST.moduleId, CONST.settings.suppressArea),
-        onChange: (_event, active) => {
-          game.settings.set(CONST.moduleId, CONST.settings.suppressArea, active);
-        }
+        active: isContextSuppressed('area'),
+        onChange: (_event, active) => setContextSuppressed('area', active)
       };
       controls.sounds.tools['suppress-combat-music'] = {
         name: 'suppress-combat-music',
@@ -510,10 +511,8 @@ export function getSceneControlButtons(controls) {
         icon: 'fas fa-fist-raised',
         toggle: true,
         visible: true,
-        active: game.settings.get(CONST.moduleId, CONST.settings.suppressCombat),
-        onChange: (_event, active) => {
-          game.settings.set(CONST.moduleId, CONST.settings.suppressCombat, active);
-        }
+        active: isContextSuppressed('combat'),
+        onChange: (_event, active) => setContextSuppressed('combat', active)
       };
     }
   } catch (error) {

@@ -1,5 +1,6 @@
 import { VGMusicConfig } from './app.mjs';
 import { CONST } from './config.mjs';
+import { isContextSuppressed, setContextSuppressed } from './helpers.mjs';
 import { musicController } from './music-controller.mjs';
 
 const { SetField, StringField } = foundry.data.fields;
@@ -80,25 +81,14 @@ export function registerSettings() {
     default: false
   });
 
-  game.settings.register(CONST.moduleId, CONST.settings.suppressArea, {
-    name: 'VGMusic.Settings.SuppressArea.Name',
+  game.settings.register(CONST.moduleId, CONST.settings.suppressedContexts, {
     scope: 'world',
     config: false,
-    type: Boolean,
-    default: false,
-    onChange: () => {
+    type: new SetField(new StringField({ blank: false })),
+    default: [],
+    onChange: (value) => {
       musicController.playCurrentTrack();
-    }
-  });
-
-  game.settings.register(CONST.moduleId, CONST.settings.suppressCombat, {
-    name: 'VGMusic.Settings.SuppressCombat.Name',
-    scope: 'world',
-    config: false,
-    type: Boolean,
-    default: false,
-    onChange: () => {
-      musicController.playCurrentTrack();
+      Hooks.callAll('vgmusic.suppressionChanged', value);
     }
   });
 }
@@ -122,16 +112,12 @@ export function registerKeybindings() {
  * Toggle area music suppression
  */
 async function toggleAreaMusic() {
-  const current = game.settings.get(CONST.moduleId, CONST.settings.suppressArea);
-  await game.settings.set(CONST.moduleId, CONST.settings.suppressArea, !current);
-  ui.controls.initialize();
+  await setContextSuppressed('area', !isContextSuppressed('area'));
 }
 
 /**
  * Toggle combat music suppression
  */
 async function toggleCombatMusic() {
-  const current = game.settings.get(CONST.moduleId, CONST.settings.suppressCombat);
-  await game.settings.set(CONST.moduleId, CONST.settings.suppressCombat, !current);
-  ui.controls.initialize();
+  await setContextSuppressed('combat', !isContextSuppressed('combat'));
 }
