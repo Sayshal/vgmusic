@@ -13,11 +13,12 @@ import {
   handleUpdateToken,
   handleUserConnected,
   VGMusicConfig
-} from './app.mjs';
-import { getRegisteredSections, registerSection, unregisterSection } from './config.mjs';
-import { PlaylistContext } from './helpers.mjs';
-import { musicController } from './music-controller.mjs';
-import { registerKeybindings, registerSettings } from './settings.mjs';
+} from './scripts/app.mjs';
+import { getRegisteredSections, registerSection, unregisterSection } from './scripts/config.mjs';
+import { PlaylistContext } from './scripts/helpers.mjs';
+import { musicController } from './scripts/music-controller.mjs';
+import { registerKeybindings, registerSettings } from './scripts/settings.mjs';
+import './styles/vgmusic.css';
 
 /**
  * Register a playlist section and hand back a handle for its lifetime

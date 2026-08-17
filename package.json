@@ -1,0 +1,24 @@
+{
+  "name": "vgmusic",
+  "version": "1.0.0",
+  "description": "Scene and combat music switching for FoundryVTT",
+  "scripts": {
+    "build": "rollup -c rollup.config.mjs",
+    "build:watch": "rollup -c rollup.config.mjs --watch",
+    "dev": "rollup -c rollup.config.mjs --environment BUILD:development",
+    "clean": "node -e \"import('fs').then(f=>f.rmSync('dist',{recursive:true,force:true}))\""
+  },
+  "author": "Tyler",
+  "license": "MIT",
+  "private": true,
+  "bugs": {
+    "url": "https://github.com/Sayshal/vgmusic/issues"
+  },
+  "homepage": "https://github.com/Sayshal/vgmusic#readme",
+  "devDependencies": {
+    "@rollup/plugin-terser": "^1.0.0",
+    "rollup": "^4.59.0",
+    "rollup-plugin-copy": "^3.5.0",
+    "rollup-plugin-postcss": "^4.0.2"
+  }
+}

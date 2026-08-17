@@ -1,2 +1,5 @@
-vgmusic.lock
+*.lock
+/dist
+/node_modules
+/todo
 README.html
