@@ -11,7 +11,7 @@ const { DragDrop } = foundry.applications.ux;
  */
 export class VGMusicConfig extends HandlebarsApplicationMixin(ApplicationV2) {
   static DEFAULT_OPTIONS = {
-    id: 'vgmusic-config',
+    id: 'vgmusic-config-{id}',
     tag: 'form',
     window: { title: 'VGMusic.ConfigTitle', icon: 'fas fa-music', resizable: true, minimizable: true },
     modal: true,
@@ -599,15 +599,12 @@ export function handleCanvasReady() {
 
 /**
  * Handle scene updates for music flag changes
- * @param {object} scene - The scene document
+ * @param {object} _scene - The scene document
  * @param {object} updateData - The update data
  */
-export function handleUpdateScene(scene, updateData) {
+export function handleUpdateScene(_scene, updateData) {
   if (updateData.flags?.[CONST.moduleId]?.music) musicController.playCurrentTrack();
-  if ('active' in updateData) {
-    if (updateData.active !== true) scene.unsetFlag(CONST.moduleId, 'playlist').catch(() => {});
-    musicController.playCurrentTrack();
-  }
+  if ('active' in updateData) musicController.playCurrentTrack();
 }
 
 /**

@@ -99,11 +99,13 @@ export function registerSettings() {
 export function registerKeybindings() {
   game.keybindings.register(CONST.moduleId, 'toggleAreaMusic', {
     name: 'VGMusic.Keybindings.ToggleAreaMusic',
+    restricted: true,
     onDown: () => toggleAreaMusic()
   });
 
   game.keybindings.register(CONST.moduleId, 'toggleCombatMusic', {
     name: 'VGMusic.Keybindings.ToggleCombatMusic',
+    restricted: true,
     onDown: () => toggleCombatMusic()
   });
 }

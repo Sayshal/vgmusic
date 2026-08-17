@@ -31,7 +31,8 @@ export class MusicController {
    * @returns {object|undefined} The current combat or undefined
    */
   get currentCombat() {
-    return game.combats.find((combat) => combat.scene === this.currentScene) || game.combats.find((combat) => combat.active);
+    const scene = this.currentScene;
+    return game.combats.find((combat) => combat.active && combat.scene === scene) ?? game.combats.find((combat) => combat.scene === scene) ?? game.combats.find((combat) => combat.active);
   }
 
   /**
@@ -275,12 +276,11 @@ export class MusicController {
           if (b.contextEntity === actor || b.contextEntity === prototype) return 1;
         } while (i !== (startIdx + 1) % combatants.length);
       }
-    } else if (silentMode === CONST.silentModes.area) {
-      if (getEntityTypeName(a.contextEntity) !== 'Actor' && a.context === 'area') return -1;
-      if (getEntityTypeName(b.contextEntity) !== 'Actor' && b.context === 'area') return 1;
-    } else if (silentMode === CONST.silentModes.generic) {
-      if (getEntityTypeName(a.contextEntity) !== 'Actor' && a.context === 'combat') return -1;
-      if (getEntityTypeName(b.contextEntity) !== 'Actor' && b.context === 'combat') return 1;
+    } else if (silentMode === CONST.silentModes.area || silentMode === CONST.silentModes.generic) {
+      const preferred = silentMode === CONST.silentModes.area ? 'area' : 'combat';
+      const aPreferred = getEntityTypeName(a.contextEntity) !== 'Actor' && a.context === preferred;
+      const bPreferred = getEntityTypeName(b.contextEntity) !== 'Actor' && b.context === preferred;
+      if (aPreferred !== bPreferred) return aPreferred ? -1 : 1;
     }
     if (a.priority !== b.priority) return b.priority - a.priority;
     const aTypeName = getEntityTypeName(a.contextEntity);
