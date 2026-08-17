@@ -534,7 +534,7 @@ export function handleSceneConfigRender(app, html) {
     const newFormGroup = document.createElement('div');
     newFormGroup.className = 'form-group';
     const label = document.createElement('label');
-    label.textContent = _loc('VGMusic.CombatMusic');
+    label.textContent = _loc('VGMusic.Music');
     const formFields = document.createElement('div');
     formFields.className = 'form-fields';
     const button = document.createElement('button');
@@ -645,7 +645,7 @@ export function handleTokenConfigRender(app, html, _context, _options) {
     const formGroup = document.createElement('div');
     formGroup.className = 'form-group';
     const label = document.createElement('label');
-    label.textContent = _loc('VGMusic.CombatMusic');
+    label.textContent = _loc('VGMusic.Music');
     const formFields = document.createElement('div');
     formFields.className = 'form-fields';
     const button = document.createElement('button');

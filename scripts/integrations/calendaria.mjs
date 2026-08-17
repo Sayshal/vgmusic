@@ -5,6 +5,9 @@ import { musicController } from '../music-controller.mjs';
 /** Insertion points that render a full button rather than an indicator */
 const BUTTON_POINTS = new Set(['hud.buttons.left', 'hud.buttons.right']);
 
+/** Longest track name the indicator shows before trimming */
+const LABEL_LENGTH = 24;
+
 /**
  * Get the context the widget acts on, preferring the head GM's live state over the mirror
  * @returns {string|null} Context key, or null when nothing is playing
@@ -77,15 +80,26 @@ function getColor() {
 }
 
 /**
+ * Get the indicator label, naming the playing track
+ * @returns {string} Track name, trimmed and escaped, or an empty string when nothing is playing
+ */
+function getLabel() {
+  const name = getMirror()?.name;
+  if (!name) return '';
+  const trimmed = name.length > LABEL_LENGTH ? `${name.slice(0, LABEL_LENGTH - 1)}…` : name;
+  return foundry.utils.escapeHTML(trimmed);
+}
+
+/**
  * Get the indicator tooltip, naming the playing track and the click action
  * @returns {string} Tooltip text
  */
 function getTooltip() {
   if (game.user.isGM && isSuppressed()) return game.i18n.localize('VGMusic.NowPlaying.Release');
-  const track = getMirror()?.name;
-  if (!track) return game.i18n.localize('VGMusic.NowPlaying.Nothing');
+  const name = getMirror()?.name;
+  if (!name) return game.i18n.localize('VGMusic.NowPlaying.Nothing');
   const key = game.user.isGM ? 'Suppress' : isMuted() ? 'Unmute' : 'Mute';
-  return game.i18n.format(`VGMusic.NowPlaying.${key}`, { track });
+  return game.i18n.format(`VGMusic.NowPlaying.${key}`, { track: foundry.utils.escapeHTML(name) });
 }
 
 /** Suppress the playing context for every client as a GM, or mute locally as a player */
@@ -112,6 +126,7 @@ export function registerCalendariaWidget() {
       type: BUTTON_POINTS.has(point) ? 'button' : 'indicator',
       insertAt: point,
       icon: getIcon,
+      label: getLabel,
       color: getColor,
       tooltip: getTooltip,
       onClick
