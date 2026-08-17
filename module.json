@@ -17,21 +17,11 @@
   },
   "description": "Your scene's music switches to combat tracks when a fight starts and back to exploration music when it ends, just like a video game! Assign playlists per scene or give individual tokens their own battle themes, and any track that gets cut off resumes where it left off instead of restarting.",
   "download": "",
-  "esmodules": [
-    "vgmusic.mjs"
-  ],
+  "esmodules": ["vgmusic.mjs"],
   "flags": {
     "hotReload": {
-      "extensions": [
-        "css",
-        "html",
-        "hbs",
-        "json"
-      ],
-      "paths": [
-        "styles",
-        "templates"
-      ]
+      "extensions": ["css", "html", "hbs", "json"],
+      "paths": ["styles", "templates"]
     }
   },
   "id": "vgmusic",
@@ -46,9 +36,7 @@
       }
     ]
   },
-  "styles": [
-    "styles/vgmusic.css"
-  ],
+  "styles": ["styles/vgmusic.css"],
   "title": "Video Game Music",
   "url": "https://github.com/Sayshal/vgmusic",
   "version": ""

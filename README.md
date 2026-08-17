@@ -5,8 +5,8 @@ This module was updated as part of a commission. Any further updates beyond new 
 # Video Game Music
 
 ![GitHub release](https://img.shields.io/github/v/release/Sayshal/vgmusic?style=for-the-badge)
-![GitHub Downloads (specific asset, all releases)](https://img.shields.io/github/downloads/Sayshal/vgmusic/module.zip?style=for-the-badge&logo=foundryvirtualtabletop&logoColor=white&logoSize=auto&label=Downloads%20(Total)&color=ff144f)
-![GitHub Downloads (specific asset, latest release)](https://img.shields.io/github/downloads/Sayshal/vgmusic/latest/module.zip?sort=date&style=for-the-badge&logo=foundryvirtualtabletop&logoColor=white&logoSize=auto&label=Downloads%20(Latest)&color=ff144f)
+![GitHub Downloads (specific asset, all releases)](<https://img.shields.io/github/downloads/Sayshal/vgmusic/module.zip?style=for-the-badge&logo=foundryvirtualtabletop&logoColor=white&logoSize=auto&label=Downloads%20(Total)&color=ff144f>)
+![GitHub Downloads (specific asset, latest release)](<https://img.shields.io/github/downloads/Sayshal/vgmusic/latest/module.zip?sort=date&style=for-the-badge&logo=foundryvirtualtabletop&logoColor=white&logoSize=auto&label=Downloads%20(Latest)&color=ff144f>)
 
 ![Foundry Version](https://img.shields.io/endpoint?url=https%3A%2F%2Ffoundryshields.com%2Fversion%3Fstyle%3Dfor-the-badge%26url%3Dhttps%3A%2F%2Fgithub.com%2FSayshal%2Fvgmusic%2Freleases%2Flatest%2Fdownload%2Fmodule.json)
 
@@ -46,11 +46,11 @@ https://github.com/Sayshal/vgmusic/releases/latest/download/module.json
 
 ## Settings
 
-| Setting | Description |
-|---|---|
+| Setting                  | Description                                                                                                     |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------- |
 | Silent Combat Music Mode | What plays when the active combatant has no theme (highest priority, last actor, area music, or generic combat) |
-| Fade Duration | Crossfade time in seconds (0 = use per-sound fade) |
-| Default Music | World-level fallback combat playlist |
+| Fade Duration            | Crossfade time in seconds (0 = use per-sound fade)                                                              |
+| Default Music            | World-level fallback combat playlist                                                                            |
 
 ## Support
 
