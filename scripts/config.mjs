@@ -8,7 +8,6 @@ export const CONST = {
     defaultMusic: 'defaultMusic',
     suppressArea: 'suppressArea',
     suppressCombat: 'suppressCombat',
-    fadeDuration: 'fadeDuration',
     nowPlaying: 'nowPlaying',
     nowPlayingWidget: 'nowPlayingWidget',
     nowPlayingMuted: 'nowPlayingMuted'

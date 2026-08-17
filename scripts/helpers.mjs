@@ -1,5 +1,4 @@
 import { CONST } from './config.mjs';
-import { musicController } from './music-controller.mjs';
 
 /**
  * Utility helper functions
@@ -110,31 +109,5 @@ export class PlaylistContext {
       return new this(type, document, playlist, trackId, priority, scopeEntity);
     }
     return null;
-  }
-}
-
-/**
- * Fading track handler for smooth transitions
- */
-export class FadingTrack {
-  /**
-   * @param {object} track - The track to fade
-   * @param {number} fadeDuration - Duration of fade in milliseconds
-   */
-  constructor(track, fadeDuration = 1000) {
-    this.track = track;
-    this.fadeDuration = fadeDuration;
-    setTimeout(() => this.delete(), this.fadeDuration + 10);
-  }
-
-  /**
-   * Remove this fading track from the controller
-   */
-  delete() {
-    const index = musicController.fadingTracks.indexOf(this);
-    if (index >= 0) {
-      musicController.fadingTracks.splice(index, 1);
-      if (musicController.currentTrack === this.track) musicController.playCurrentTrack();
-    }
   }
 }

@@ -604,7 +604,7 @@ export function handleCanvasReady() {
  * @param {object} updateData - The update data
  */
 export function handleUpdateScene(scene, updateData) {
-  if ('flags' in updateData && updateData.flags?.[CONST.moduleId]) musicController.playCurrentTrack();
+  if (updateData.flags?.[CONST.moduleId]?.music) musicController.playCurrentTrack();
   if ('active' in updateData) {
     if (updateData.active !== true) scene.unsetFlag(CONST.moduleId, 'playlist').catch(() => {});
     musicController.playCurrentTrack();
@@ -617,7 +617,7 @@ export function handleUpdateScene(scene, updateData) {
  * @param {object} updateData - The update data
  */
 export function handleUpdateActor(_actor, updateData) {
-  if ('flags' in updateData && updateData.flags?.[CONST.moduleId]) musicController.playCurrentTrack();
+  if (updateData.flags?.[CONST.moduleId]?.music) musicController.playCurrentTrack();
 }
 
 /**
@@ -626,7 +626,7 @@ export function handleUpdateActor(_actor, updateData) {
  * @param {object} updateData - The update data
  */
 export function handleUpdateToken(_token, updateData) {
-  if ('flags' in updateData && updateData.flags?.[CONST.moduleId]) musicController.playCurrentTrack();
+  if (updateData.flags?.[CONST.moduleId]?.music) musicController.playCurrentTrack();
 }
 
 /**

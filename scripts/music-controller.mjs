@@ -1,5 +1,5 @@
 import { CONST, getRegisteredSections } from './config.mjs';
-import { FadingTrack, isHeadGM, PlaylistContext } from './helpers.mjs';
+import { isHeadGM, PlaylistContext } from './helpers.mjs';
 
 /**
  * Get document type name, treating PrototypeToken as 'Token'
@@ -19,7 +19,6 @@ export class MusicController {
   /** Creates a new MusicController instance */
   constructor() {
     this.currentContext = null;
-    this.fadingTracks = [];
     this.pendingPlayback = null;
     this.suppressionTokens = new Set();
     this.suppressionCounts = new Map();
@@ -353,46 +352,29 @@ export class MusicController {
   }
 
   /**
-   * Play music for a given context
+   * Play music for a given context.
    * @param {PlaylistContext|null} context - Playlist context to play
    */
   async playMusic(context) {
     const prevTrack = this.currentTrack;
     const newTrack = context?.track;
-    const fadeMs = game.settings.get(CONST.moduleId, CONST.settings.fadeDuration) * 1000;
-    const isFading = { prev: this.fadingTracks.some((ft) => ft.track === prevTrack), new: this.fadingTracks.some((ft) => ft.track === newTrack) };
-    if (prevTrack !== newTrack && prevTrack) {
+    if (prevTrack === newTrack) {
+      this.currentContext = context;
+      return;
+    }
+    if (prevTrack) {
       await this.savePlaylistData(this.currentContext?.scopeEntity);
-      if (this.isAudioReady()) {
-        if (fadeMs > 0 && prevTrack.sound?.playing) {
-          prevTrack.sound.fade(0, { duration: fadeMs });
-          const track = prevTrack;
-          setTimeout(() => track.update({ playing: false, pausedTime: null }), fadeMs);
-        } else {
-          await prevTrack.update({ playing: false, pausedTime: null });
-        }
-      }
-      const guardMs = fadeMs || prevTrack.fadeDuration;
-      if (guardMs > 0 && !isFading.prev) this.fadingTracks.push(new FadingTrack(prevTrack, guardMs));
+      if (this.isAudioReady()) await prevTrack.update({ playing: false, pausedTime: null });
       this.currentContext = null;
     }
     if (newTrack) {
       this.currentContext = context;
-      if (!isFading.new) {
-        const startTime = this.currentTrackInfo?.start ?? 0;
-        const shouldFadeIn = fadeMs > 0 && prevTrack;
-        await this.waitForAudio(async () => {
-          if (shouldFadeIn) {
-            const targetVolume = newTrack.volume;
-            await newTrack.update({ playing: true, pausedTime: startTime, volume: 0 });
-            this._fadeInWhenReady(newTrack, targetVolume, fadeMs);
-          } else {
-            await newTrack.update({ playing: true, pausedTime: startTime });
-          }
-        });
-      }
+      const startTime = this.currentTrackInfo?.start ?? 0;
+      await this.waitForAudio(async () => {
+        await newTrack.update({ playing: true, pausedTime: startTime });
+      });
     }
-    if (prevTrack !== newTrack) await this.updateNowPlaying(context);
+    await this.updateNowPlaying(context);
   }
 
   /**
@@ -426,27 +408,6 @@ export class MusicController {
     this.lastNowPlaying = value;
     if (prev === current) return;
     Hooks.callAll('vgmusic.trackChanged', { prev, current, context: value?.context ?? null });
-  }
-
-  /**
-   * Poll for a track's sound node to be ready, then apply fade-in
-   * @param {object} track - The PlaylistSound to fade in
-   * @param {number} targetVolume - Volume to fade to
-   * @param {number} fadeMs - Fade duration in milliseconds
-   */
-  _fadeInWhenReady(track, targetVolume, fadeMs) {
-    const poll = setInterval(() => {
-      if (track.sound?.sourceNode) {
-        clearInterval(poll);
-        track.sound.fade(targetVolume, { duration: fadeMs });
-        setTimeout(() => track.update({ volume: targetVolume }), fadeMs);
-      }
-    }, 20);
-    // Safety: restore document volume even if sound never loads
-    setTimeout(() => {
-      clearInterval(poll);
-      track.update({ volume: targetVolume });
-    }, fadeMs + 1000);
   }
 }
 

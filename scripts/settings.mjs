@@ -53,16 +53,6 @@ export function registerSettings() {
     default: { documentName: 'DefaultMusic', data: { vgmusic: { music: {} } } }
   });
 
-  game.settings.register(CONST.moduleId, CONST.settings.fadeDuration, {
-    name: 'VGMusic.Settings.FadeDuration.Name',
-    hint: 'VGMusic.Settings.FadeDuration.Hint',
-    scope: 'world',
-    config: true,
-    type: Number,
-    range: { min: 0, max: 10, step: 0.5 },
-    default: 0
-  });
-
   game.settings.register(CONST.moduleId, CONST.settings.nowPlaying, {
     scope: 'world',
     config: false,
