@@ -2,8 +2,62 @@ import { MODULE, SETTINGS, TEMPLATES } from '../constants.mjs';
 import { musicController } from '../music-controller.mjs';
 import { getSections } from '../section-registry.mjs';
 
-const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
+const { ApplicationV2, DialogV2, HandlebarsApplicationMixin } = foundry.applications.api;
+const { renderTemplate } = foundry.applications.handlebars;
 const { DragDrop } = foundry.applications.ux;
+
+/**
+ * Build the context the section form renders from
+ * @param {object} options - Form seed
+ * @param {object} options.sections - Available sections keyed by context, from getSections
+ * @param {object} options.playlist - The playlist being assigned
+ * @param {string} options.section - Context key to preselect
+ * @param {string} options.initialTrack - Track id to preselect, empty for the playlist default
+ * @param {number} options.priority - Priority to prefill
+ * @returns {object} Template context
+ */
+function sectionFormContext({ sections, playlist, section, initialTrack, priority }) {
+  const sectionChoices = Object.fromEntries(Object.entries(sections).map(([key, config]) => [key, _loc(config.label)]));
+  const meta = Object.fromEntries(Object.entries(sections).map(([key, config]) => [key, { priority: config.priority ?? 0, hint: config.hint ? _loc(config.hint) : '' }]));
+  const tracks = playlist?.playbackOrder?.reduce((obj, id) => {
+    obj[id] = playlist.sounds.get(id).name;
+    return obj;
+  }, {});
+  return { sections: sectionChoices, meta: JSON.stringify(meta), tracks: tracks ?? {}, section, initialTrack, priority, sectionHint: meta[section]?.hint ?? '' };
+}
+
+/**
+ * Ask which section a playlist belongs to, and how it should play
+ * @param {object} options - Form seed, see sectionFormContext
+ * @returns {Promise<object|null>} The chosen section, track and priority, or null when dismissed
+ */
+async function promptSectionConfig(options) {
+  return DialogV2.prompt({
+    window: { title: game.i18n.format('VGMusic.SectionConfig.Title', { playlist: options.playlist?.name ?? '' }), icon: 'fas fa-music' },
+    content: await renderTemplate(TEMPLATES.SECTION_CONFIG, sectionFormContext(options)),
+    ok: {
+      label: 'VGMusic.SectionConfig.Assign',
+      icon: 'fas fa-check',
+      callback: (_event, button) => ({
+        section: button.form.elements.section.value,
+        initialTrack: button.form.elements.initialTrack.value,
+        priority: Number(button.form.elements.priority.value) || 0
+      })
+    },
+    render: (_event, dialog) => {
+      const form = dialog.element.querySelector('form');
+      const meta = JSON.parse(form.elements.sectionMeta.value);
+      const hint = form.querySelector('[data-section-hint]');
+      form.elements.section.addEventListener('change', (event) => {
+        const selected = meta[event.currentTarget.value] ?? {};
+        form.elements.priority.value = selected.priority ?? 0;
+        hint.textContent = selected.hint ?? '';
+      });
+    },
+    rejectClose: false,
+    classes: [MODULE.ID]
+  });
+}
 
 /**
  * Music configuration application
@@ -11,34 +65,20 @@ const { DragDrop } = foundry.applications.ux;
 export class VGMusicConfig extends HandlebarsApplicationMixin(ApplicationV2) {
   static DEFAULT_OPTIONS = {
     id: 'vgmusic-config-{id}',
-    tag: 'form',
-    window: { title: 'VGMusic.ConfigTitle', icon: 'fas fa-music', resizable: true, minimizable: true, contentClasses: ['standard-form'] },
-    modal: true,
-    classes: ['dnd5e2'],
-    form: {
-      handler: VGMusicConfig.formHandler,
-      closeOnSubmit: false,
-      submitOnChange: false
-    },
-    position: { width: 'auto', height: 'auto' },
+    tag: 'div',
+    window: { title: 'VGMusic.ConfigTitle', icon: 'fas fa-music', resizable: true },
+    position: { width: 560, height: 'auto' },
     actions: {
-      reset: VGMusicConfig.handleReset,
       openPlaylist: VGMusicConfig.openPlaylist,
+      configureSection: VGMusicConfig.configureSection,
       deletePlaylist: VGMusicConfig.deletePlaylist
     },
-    dragDrop: [
-      { dragSelector: '.playlist-section-item[data-reorderable="true"]', dropSelector: '.playlist-section-list', permissions: { dragstart: true, drop: true }, callbacks: {} },
-      { dragSelector: null, dropSelector: '.playlist-section[data-section]', permissions: { dragstart: false, drop: true }, callbacks: {} }
-    ]
+    classes: [MODULE.ID],
+    dragDrop: [{ dragSelector: null, dropSelector: '.vgmusic-sections', permissions: { dragstart: false, drop: true }, callbacks: {} }]
   };
 
   /** @override */
-  static PARTS = {
-    content: { template: TEMPLATES.MUSIC_CONFIG },
-    footer: { template: TEMPLATES.FORM_FOOTER }
-  };
-
-  config = [];
+  static PARTS = { main: { template: TEMPLATES.MUSIC_CONFIG } };
 
   /**
    * Create a new configuration instance
@@ -68,306 +108,97 @@ export class VGMusicConfig extends HandlebarsApplicationMixin(ApplicationV2) {
     return undefined;
   }
 
-  /** Initialize the playlist configuration from document or defaults */
-  initializeConfig() {
-    try {
-      const docType = this.documentTypeName;
-      const sections = getSections(docType);
-      if (!sections) {
-        ATLAS.log(1, 'No sections found for document type:', docType);
-        this.config = [];
-        return;
-      }
-      const data = foundry.utils.getProperty(this.document, this.updateDataPrefix) || {};
-      this.config = Object.entries(sections).map(([key, sectionConfig]) => {
-        const sectionData = foundry.utils.getProperty(data, `music.${key}`) || {};
-        const playlistId = sectionData.playlist;
-        const playlist = playlistId ? game.playlists.get(playlistId) : null;
-        const tracks =
-          playlist?.playbackOrder?.reduce((obj, id) => {
-            const track = playlist.sounds.get(id);
-            obj[id] = track.name;
-            return obj;
-          }, {}) || {};
-        return {
-          id: key,
-          label: sectionConfig.label,
-          order: sectionData.order || sectionConfig.priority || 0,
-          enabled: !!playlist,
-          playlist,
-          tracks,
-          data: sectionData,
-          allowPriority: true,
-          sortable: true
-        };
-      });
-      this.config.sort((a, b) => a.order - b.order);
-    } catch (error) {
-      ATLAS.log(1, 'Error initializing configuration:', error);
-      this.config = [];
-    }
+  /**
+   * Read this document's stored music configuration
+   * @returns {object} Section data keyed by context
+   */
+  get musicData() {
+    return foundry.utils.getProperty(this.document, `${this.updateDataPrefix}.music`) || {};
   }
 
   /** @override */
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
-    this.initializeConfig();
-    const playlistConfig = this.config.map((section, index) => ({ ...section, index, labelLocalized: _loc(section.label) }));
-    const buttons = [
-      { type: 'submit', icon: 'fas fa-save', label: 'VGMusic.UI.Save' },
-      { type: 'button', action: 'reset', icon: 'fas fa-undo', label: 'VGMusic.UI.Reset' }
-    ];
-    return { ...context, playlistConfig, buttons, documentType: this.documentTypeName };
+    const sections = getSections(this.documentTypeName) || {};
+    const music = this.musicData;
+    const rows = Object.entries(sections)
+      .filter(([key]) => music[key]?.playlist)
+      .map(([key, config]) => {
+        const data = music[key];
+        const playlist = game.playlists.get(data.playlist);
+        return {
+          id: key,
+          label: _loc(config.label),
+          playlistId: data.playlist,
+          playlistName: playlist?.name ?? _loc('VGMusic.MissingPlaylist'),
+          trackName: playlist?.sounds.get(data.initialTrack)?.name ?? _loc('VGMusic.Default'),
+          priority: data.priority ?? config.priority ?? 0
+        };
+      })
+      .sort((a, b) => b.priority - a.priority);
+    return { ...context, rows };
   }
 
   /** @override */
   _onRender(context, options) {
     super._onRender(context, options);
-    this.setDraggableAttributes();
-    this.setupDragDrop();
-  }
-
-  /** Set up drag and drop handlers for both reordering and external drops */
-  setupDragDrop() {
-    this.options.dragDrop.forEach((dragDropOptions, index) => {
-      if (index === 0) {
-        dragDropOptions.callbacks = {
-          dragstart: this.onDragStart.bind(this),
-          dragover: this.onDragOver.bind(this),
-          drop: this.onDropReorder.bind(this)
-        };
-      } else {
-        dragDropOptions.callbacks = {
-          dragover: this.onDragOverExternal.bind(this),
-          drop: this.onDropExternal.bind(this)
-        };
-      }
-      const dragDropHandler = new DragDrop(dragDropOptions);
-      dragDropHandler.bind(this.element);
-    });
-  }
-
-  /** Set draggable attributes on playlist items */
-  setDraggableAttributes() {
-    const items = this.element.querySelectorAll('.playlist-section-item');
-    items.forEach((item, index) => {
-      const section = this.config[index];
-      const isSortable = section?.sortable !== false;
-      item.setAttribute('draggable', isSortable ? 'true' : 'false');
-      item.setAttribute('data-reorderable', isSortable ? 'true' : 'false');
-    });
-  }
-
-  /**
-   * Handle drag start event for internal reordering
-   * @param {DragEvent} event - The drag event
-   * @returns {boolean} Whether drag started successfully
-   */
-  onDragStart(event) {
-    try {
-      const li = event.currentTarget.closest('li');
-      if (!li || li.classList.contains('not-sortable')) {
-        ATLAS.log(1, 'Drag start blocked - not sortable');
-        return false;
-      }
-      this._formState = this._captureFormState();
-      const sectionIndex = li.dataset.index;
-      const dragData = { type: 'playlist-config-reorder', index: sectionIndex };
-      event.dataTransfer.setData('text/plain', JSON.stringify(dragData));
-      li.classList.add('dragging');
-      return true;
-    } catch (error) {
-      ATLAS.log(1, 'Error starting drag:', error);
-      return false;
+    for (const descriptor of this.options.dragDrop) {
+      descriptor.callbacks = { dragover: this.onDragOver.bind(this), drop: this.onDrop.bind(this) };
+      new DragDrop(descriptor).bind(this.element);
     }
   }
 
   /**
-   * Handle drag over event for internal reordering
+   * Highlight the drop target while a playlist is dragged over it
    * @param {DragEvent} event - The drag event
    */
   onDragOver(event) {
     event.preventDefault();
-    const list = this.element.querySelector('.playlist-section-list');
-    if (!list) {
-      ATLAS.log(2, 'No playlist section list found');
-      return;
-    }
-    const draggingItem = list.querySelector('.dragging');
-    if (!draggingItem) return;
-    const items = Array.from(list.querySelectorAll('li:not(.dragging)'));
-    if (!items.length) return;
-    const targetItem = this.getDragTarget(event, items);
-    if (!targetItem) return;
-    const rect = targetItem.getBoundingClientRect();
-    const dropAfter = event.clientY > rect.top + rect.height / 2;
-    this.removeDropPlaceholders();
-    this.createDropPlaceholder(targetItem, dropAfter);
+    event.currentTarget.classList.add('drop-hover');
   }
 
   /**
-   * Handle drag over event for external drops
-   * @param {DragEvent} event - The drag event
+   * Assign a dropped playlist to a section, asking how it should play
+   * @param {DragEvent} event - The drop event
+   * @returns {Promise<boolean>} Whether the drop was handled
    */
-  onDragOverExternal(event) {
+  async onDrop(event) {
     event.preventDefault();
-    const hasExternalData = event.dataTransfer.types.includes('text/plain');
-    if (hasExternalData) event.currentTarget.classList.add('drop-hover');
+    event.currentTarget.classList.remove('drop-hover');
+    const data = foundry.applications.ux.TextEditor.implementation.getDragEventData(event);
+    if (!['Playlist', 'PlaylistSound'].includes(data?.type) || !data.uuid) return false;
+    const dropped = await fromUuid(data.uuid);
+    if (!dropped) return false;
+    const playlist = dropped instanceof PlaylistSound ? dropped.parent : dropped;
+    const sound = dropped instanceof PlaylistSound ? dropped : null;
+    const sections = getSections(this.documentTypeName);
+    if (!sections) return false;
+    const section = Object.keys(sections)[0];
+    const result = await promptSectionConfig({ sections, playlist, section, initialTrack: sound?.id ?? '', priority: sections[section].priority ?? 0 });
+    if (!result) return false;
+    await this.assignSection(result, playlist.id);
+    return true;
   }
 
   /**
-   * Find the target element for dropping
-   * @param {DragEvent} event - The drag event
-   * @param {HTMLElement[]} items - List of potential drop targets
-   * @returns {HTMLElement|null} The closest drop target element
+   * Write a section assignment, clearing the previous one when the section changed
+   * @param {object} result - The chosen section, track and priority
+   * @param {string} result.section - Context key to assign the playlist to
+   * @param {string} result.initialTrack - Track id to start from, empty for the playlist default
+   * @param {number} result.priority - Sort priority for this section
+   * @param {string} playlistId - The playlist to assign
+   * @param {string} [previousSection] - Section the assignment is moving away from
+   * @returns {Promise<void>} Resolves once the write completes
    */
-  getDragTarget(event, items) {
-    try {
-      return (
-        items.reduce((closest, child) => {
-          const box = child.getBoundingClientRect();
-          const offset = event.clientY - (box.top + box.height / 2);
-          if (closest === null || Math.abs(offset) < Math.abs(closest.offset)) return { element: child, offset: offset };
-          else return closest;
-        }, null)?.element || null
-      );
-    } catch (error) {
-      ATLAS.log(1, 'Error finding drag target:', error);
-      return null;
-    }
-  }
-
-  /**
-   * Handle drop event for internal reordering
-   * @param {DragEvent} event - The drop event
-   * @returns {Promise<boolean>} Whether drop was handled successfully
-   */
-  async onDropReorder(event) {
-    try {
-      event.preventDefault();
-      const dataString = event.dataTransfer.getData('text/plain');
-      if (!dataString) return false;
-      const data = JSON.parse(dataString);
-      if (!data || data.type !== 'playlist-config-reorder') return false;
-      const sourceIndex = parseInt(data.index);
-      if (isNaN(sourceIndex)) return false;
-      const list = this.element.querySelector('.playlist-section-list');
-      const items = Array.from(list.querySelectorAll('li:not(.dragging)'));
-      const targetItem = this.getDragTarget(event, items);
-      if (!targetItem) return false;
-      const targetIndex = parseInt(targetItem.dataset.index);
-      if (isNaN(targetIndex)) return false;
-      const rect = targetItem.getBoundingClientRect();
-      const dropAfter = event.clientY > rect.top + rect.height / 2;
-      let newIndex = dropAfter ? targetIndex + 1 : targetIndex;
-      if (sourceIndex < newIndex) newIndex--;
-      const [movedItem] = this.config.splice(sourceIndex, 1);
-      this.config.splice(newIndex, 0, movedItem);
-      this.updatePlaylistOrder();
-      if (this._formState) for (const section of this.config) if (section.id in this._formState) section.enabled = this._formState[section.id];
-      this.render(false);
-      return true;
-    } catch (error) {
-      ATLAS.log(1, 'Error handling reorder drop:', error);
-      return false;
-    } finally {
-      this.cleanupDragElements();
-      delete this._formState;
-    }
-  }
-
-  /**
-   * Handle drop event for external playlist/sound drops
-   * @param {DragEvent} event - The drop event
-   * @returns {Promise<boolean>} Whether drop was handled successfully
-   */
-  async onDropExternal(event) {
-    try {
-      event.preventDefault();
-      event.currentTarget.classList.remove('drop-hover');
-      const dataString = event.dataTransfer.getData('text/plain');
-      if (!dataString) return false;
-      let data;
-      try {
-        data = JSON.parse(dataString);
-      } catch (e) {
-        ATLAS.log(1, 'Failed to parse drag data:', e);
-        return false;
-      }
-      if (data.type === 'playlist-config-reorder') return false;
-      if (!['Playlist', 'PlaylistSound'].includes(data.type) || !data.uuid) return false;
-      const section = event.currentTarget.dataset.section;
-      if (!section) return false;
-      const document = await fromUuid(data.uuid);
-      if (!document) return false;
-      let playlist, sound;
-      if (document instanceof PlaylistSound) {
-        playlist = document.parent;
-        sound = document;
-      } else if (document instanceof Playlist) playlist = document;
-      else return false;
-      const sectionConfig = getSections(this.documentTypeName)?.[section];
-      if (!sectionConfig) return false;
-      const updateData = { [`music.${section}.playlist`]: playlist.id, [`music.${section}.initialTrack`]: sound?.id || '' };
-      const currentData = foundry.utils.getProperty(this.document, this.updateDataPrefix) || {};
-      const prevData = foundry.utils.getProperty(currentData, `music.${section}`);
-      if (prevData?.priority === undefined || prevData.priority === prevData.seededPriority) {
-        updateData[`music.${section}.priority`] = sectionConfig.priority;
-        updateData[`music.${section}.seededPriority`] = sectionConfig.priority;
-      }
-      await this.updateObject(updateData);
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  /** Update playlist order values after reordering */
-  updatePlaylistOrder() {
-    this.config.forEach((section, idx) => {
-      section.order = (idx + 1) * 10;
-    });
-  }
-
-  /**
-   * Create a visual placeholder for drop position
-   * @param {HTMLElement} targetItem - The target element to place placeholder near
-   * @param {boolean} dropAfter - Whether to place placeholder after target
-   */
-  createDropPlaceholder(targetItem, dropAfter) {
-    const placeholder = document.createElement('div');
-    placeholder.classList.add('drop-placeholder');
-    if (dropAfter) targetItem.after(placeholder);
-    else targetItem.before(placeholder);
-  }
-
-  /** Remove all drop placeholders */
-  removeDropPlaceholders() {
-    const placeholders = this.element.querySelectorAll('.drop-placeholder');
-    placeholders.forEach((el) => el.remove());
-  }
-
-  /** Clean up visual elements after dragging */
-  cleanupDragElements() {
-    const draggingItems = this.element.querySelectorAll('.dragging');
-    draggingItems.forEach((el) => el.classList.remove('dragging'));
-    this.removeDropPlaceholders();
-    const dropHoverItems = this.element.querySelectorAll('.drop-hover');
-    dropHoverItems.forEach((el) => el.classList.remove('drop-hover'));
-  }
-
-  /**
-   * Capture current form state for playlist enablement
-   * @returns {object} Form state object
-   */
-  _captureFormState() {
-    const state = {};
-    const checkboxes = this.element.querySelectorAll('input[type="checkbox"][name^="enabled-"]');
-    checkboxes.forEach((checkbox) => {
-      const sectionId = checkbox.name.replace('enabled-', '');
-      state[sectionId] = checkbox.checked;
-    });
-    return state;
+  async assignSection({ section, initialTrack, priority }, playlistId, previousSection) {
+    const updateData = {
+      [`music.${section}.playlist`]: playlistId,
+      [`music.${section}.initialTrack`]: initialTrack || '',
+      [`music.${section}.priority`]: priority
+    };
+    if (previousSection && previousSection !== section) updateData[`music.-=${previousSection}`] = null;
+    await this.updateObject(updateData);
+    musicController.playCurrentTrack();
   }
 
   /**
@@ -380,88 +211,69 @@ export class VGMusicConfig extends HandlebarsApplicationMixin(ApplicationV2) {
       acc[`${this.updateDataPrefix}.${key}`] = value;
       return acc;
     }, {});
-    if (this.document.constructor.name === 'PrototypeToken') {
-      const actor = this.document.parent;
-      if (!actor) return;
-      const prototypeData = Object.entries(data).reduce((acc, [key, value]) => {
-        acc[`prototypeToken.flags.${MODULE.ID}.${key}`] = value;
-        return acc;
-      }, {});
-      const result = await actor.update(prototypeData);
-      this.document = actor.prototypeToken;
-      this.render(false);
-      return result;
+    try {
+      if (this.document.constructor.name === 'PrototypeToken') {
+        const actor = this.document.parent;
+        if (!actor) return;
+        const prototypeData = Object.entries(data).reduce((acc, [key, value]) => {
+          acc[`prototypeToken.flags.${MODULE.ID}.${key}`] = value;
+          return acc;
+        }, {});
+        await actor.update(prototypeData);
+        this.document = actor.prototypeToken;
+      } else if (this.documentTypeName === 'DefaultMusic') {
+        const prevData = game.settings.get(MODULE.ID, SETTINGS.DEFAULT_MUSIC);
+        const updateData = foundry.utils.mergeObject(prevData, foundry.utils.expandObject(expandedData), {
+          inplace: false,
+          performDeletions: true
+        });
+        await game.settings.set(MODULE.ID, SETTINGS.DEFAULT_MUSIC, updateData);
+        this.document = game.settings.get(MODULE.ID, SETTINGS.DEFAULT_MUSIC);
+      } else {
+        await this.document.update(expandedData);
+      }
+    } catch (error) {
+      ATLAS.log(1, 'Error updating data:', error);
+      ui.notifications.error('VGMusic.Error.SaveFailed');
+      return;
     }
-    if (this.documentTypeName === 'DefaultMusic') {
-      const prevData = game.settings.get(MODULE.ID, SETTINGS.DEFAULT_MUSIC);
-      const updateData = foundry.utils.mergeObject(prevData, foundry.utils.expandObject(expandedData), {
-        inplace: false,
-        performDeletions: true
-      });
-      await game.settings.set(MODULE.ID, SETTINGS.DEFAULT_MUSIC, updateData);
-      this.document = game.settings.get(MODULE.ID, SETTINGS.DEFAULT_MUSIC);
-      return this.render();
-    }
-    const result = await this.document.update(expandedData);
-    this.render(false);
-    return result;
-  }
-
-  /**
-   * Handle reset action
-   * @param {Event} event - The click event
-   * @param {HTMLFormElement} _form - The form element
-   */
-  static handleReset(event, _form) {
-    event.preventDefault();
-    this.initializeConfig();
     this.render(false);
   }
 
   /**
-   * Open playlist sheet action
+   * Open the playlist sheet for a row
    * @param {Event} _event - The click event
    * @param {HTMLElement} target - The target element
    */
   static async openPlaylist(_event, target) {
-    const playlistId = target.closest('.playlist-section').dataset.itemId;
-    const playlist = game.playlists.get(playlistId);
+    const playlist = game.playlists.get(target.closest('[data-section]').dataset.itemId);
     if (playlist) playlist.sheet.render(true);
   }
 
   /**
-   * Delete playlist action
+   * Reconfigure an assigned section
+   * @param {Event} _event - The click event
+   * @param {HTMLElement} target - The target element
+   */
+  static async configureSection(_event, target) {
+    const section = target.closest('[data-section]').dataset.section;
+    const data = this.musicData[section];
+    const sections = getSections(this.documentTypeName);
+    if (!sections) return;
+    const playlist = game.playlists.get(data.playlist);
+    const result = await promptSectionConfig({ sections, playlist, section, initialTrack: data.initialTrack ?? '', priority: data.priority ?? sections[section]?.priority ?? 0 });
+    if (!result) return;
+    await this.assignSection(result, data.playlist, section);
+  }
+
+  /**
+   * Clear a section's assignment
    * @param {Event} _event - The click event
    * @param {HTMLElement} target - The target element
    */
   static async deletePlaylist(_event, target) {
-    const section = target.closest('.playlist-section').dataset.section;
+    const section = target.closest('[data-section]').dataset.section;
     await this.updateObject({ [`music.-=${section}`]: null });
-  }
-
-  /**
-   * Handle form submission
-   * @param {Event} _event - The submit event
-   * @param {HTMLFormElement} _form - The form element
-   * @param {object} formData - The form data
-   * @returns {Promise<boolean>} Whether submission succeeded
-   * @override
-   */
-  static async formHandler(_event, _form, formData) {
-    const updateData = Object.fromEntries(Object.entries(formData.object).filter(([key]) => key.startsWith('music.')));
-    if (Object.keys(updateData).length > 0) {
-      try {
-        await this.updateObject(updateData);
-        musicController.playCurrentTrack();
-        this.close();
-      } catch (error) {
-        ATLAS.log(1, 'Error updating data:', error);
-        ui.notifications.error('VGMusic.Error.SaveFailed');
-        return false;
-      }
-    } else {
-      this.close();
-    }
-    return true;
+    musicController.playCurrentTrack();
   }
 }

@@ -5,7 +5,7 @@ import { registerKeybindings, registerSettings } from './scripts/settings.mjs';
 import './styles/vgmusic.css';
 
 Hooks.once('init', () => {
-  ATLAS.register(MODULE.ID, { title: MODULE.TITLE, github: 'Sayshal/vgmusic' });
+  ATLAS.register(MODULE.ID, { title: MODULE.TITLE, github: 'Sayshal/vgmusic', theme: { scope: '.vgmusic' } });
   ATLAS.log(3, 'Initializing module');
   registerSettings();
   registerKeybindings();

@@ -215,10 +215,27 @@ export async function onReady() {
 }
 
 /**
+ * Add a music configuration entry to the scene navigation and sidebar context menus
+ * @param {object} _application - The application whose menu is being built
+ * @param {object[]} options - Context menu entries, mutated in place
+ */
+function onGetSceneContextOptions(_application, options) {
+  options.push({
+    label: 'VGMusic.ConfigTitle',
+    icon: 'fas fa-music',
+    onClick: (_event, li) => {
+      const scene = game.scenes.get(li.dataset.sceneId ?? li.dataset.entryId);
+      if (scene) new VGMusicConfig(scene).render(true);
+    }
+  });
+}
+
+/**
  * Wire the module's global hooks.
  * @returns {void}
  */
 export function registerHooks() {
+  Hooks.on('getSceneContextOptions', onGetSceneContextOptions);
   Hooks.on('getSceneControlButtons', onGetSceneControlButtons);
   Hooks.on('renderSceneConfig', onRenderSceneConfig);
   Hooks.on('updateCombat', onUpdateCombat);

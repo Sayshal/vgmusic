@@ -16,10 +16,11 @@ const RESERVED_CONTEXTS = ['area', 'combat'];
  * @param {number} [section.priority] - Default sort priority
  * @param {string[]} [section.types] - Document type names the section applies to
  * @param {Function} [section.predicate] - Activation test, evaluated once per playlist refresh
+ * @param {string} [section.hint] - Localization key describing when the section plays
  * @param {string} [section.contextKey] - Context key used for flags and playback, defaults to the id
  * @returns {object|null} The stored section definition, or null when the definition was rejected
  */
-export function registerSection({ id, label, priority = 0, types = [], predicate = null, contextKey = null } = {}) {
+export function registerSection({ id, label, priority = 0, types = [], predicate = null, contextKey = null, hint = null } = {}) {
   const key = contextKey || id;
   if (!id || typeof id !== 'string') {
     ATLAS.log(2, 'Ignoring a playlist section registered without a string id');
@@ -45,7 +46,7 @@ export function registerSection({ id, label, priority = 0, types = [], predicate
     ATLAS.log(2, `Ignoring playlist section "${id}", the context key "${key}" is already claimed`);
     return null;
   }
-  const section = { id, label, priority, types, predicate, contextKey: key };
+  const section = { id, label, priority, types, predicate, contextKey: key, hint };
   registeredSections.set(id, section);
   return section;
 }
@@ -76,6 +77,6 @@ export function getSections(docType) {
   const builtin = PLAYLIST_SECTIONS[docType];
   const registered = getRegisteredSections().filter((section) => section.types.includes(docType));
   const sections = { ...builtin };
-  for (const section of registered) sections[section.contextKey] = { label: section.label, priority: section.priority };
+  for (const section of registered) sections[section.contextKey] = { label: section.label, priority: section.priority, hint: section.hint };
   return Object.keys(sections).length ? sections : undefined;
 }

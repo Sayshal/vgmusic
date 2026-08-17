@@ -22,10 +22,13 @@ export const HOOKS = { TRACK_CHANGED: 'vgmusic.trackChanged', SUPPRESSION_CHANGE
 
 /** @type {object} Built-in playlist sections, keyed by document type name. */
 export const PLAYLIST_SECTIONS = {
-  DefaultMusic: { combat: { label: 'VGMusic.PlaylistSection.Combat', priority: -5 } },
-  Scene: { area: { label: 'VGMusic.PlaylistSection.Area', priority: -20 }, combat: { label: 'VGMusic.PlaylistSection.Combat', priority: -10 } },
-  Actor: { combat: { label: 'VGMusic.PlaylistSection.Combat', priority: 0 } },
-  Token: { combat: { label: 'VGMusic.PlaylistSection.Combat', priority: 5 } }
+  DefaultMusic: { combat: { label: 'VGMusic.PlaylistSection.Combat', priority: -5, hint: 'VGMusic.PlaylistSection.Hint.DefaultCombat' } },
+  Scene: {
+    area: { label: 'VGMusic.PlaylistSection.Area', priority: -20, hint: 'VGMusic.PlaylistSection.Hint.SceneArea' },
+    combat: { label: 'VGMusic.PlaylistSection.Combat', priority: -10, hint: 'VGMusic.PlaylistSection.Hint.SceneCombat' }
+  },
+  Actor: { combat: { label: 'VGMusic.PlaylistSection.Combat', priority: 0, hint: 'VGMusic.PlaylistSection.Hint.ActorCombat' } },
+  Token: { combat: { label: 'VGMusic.PlaylistSection.Combat', priority: 5, hint: 'VGMusic.PlaylistSection.Hint.TokenCombat' } }
 };
 
 /** @type {string[]} Document type names in ascending playback precedence, the final sort tiebreak. */
@@ -34,5 +37,5 @@ export const DOCUMENT_SORT_PRIORITY = ['Token', 'Actor', 'Scene', 'DefaultMusic'
 /** @enum {string} Handlebars template paths. */
 export const TEMPLATES = {
   MUSIC_CONFIG: 'modules/vgmusic/templates/music-config.hbs',
-  FORM_FOOTER: 'templates/generic/form-footer.hbs'
+  SECTION_CONFIG: 'modules/vgmusic/templates/section-config.hbs'
 };
