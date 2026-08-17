@@ -26,13 +26,12 @@ function isMuted() {
 
 /**
  * Apply this client's mute state to the playing track, deferring until playback starts
- * Runs after core's own start fade, so the mute wins the gain
  */
 function applyMute() {
   const track = musicController.resolveNowPlaying(getMirror());
   const sound = track?.sound;
   if (!sound) return;
-  const volume = isMuted() ? 0 : track.volume;
+  const volume = isMuted() && !isHeadGM() ? 0 : track.volume;
   if (sound.playing) sound.volume = volume;
   else sound.addEventListener('play', () => (sound.volume = volume), { once: true });
 }
@@ -84,7 +83,7 @@ async function onClick() {
       musicController.releaseSuppression(suppressionToken);
       suppressionToken = null;
     } else {
-      const context = getMirror()?.context;
+      const context = musicController.currentContext?.context;
       if (!context) return;
       suppressionToken = musicController.requestSuppression(context);
     }
@@ -118,5 +117,9 @@ export function registerCalendariaWidget() {
     CALENDARIA.api.refreshWidgets();
   });
   Hooks.on('updatePlaylistSound', onUpdatePlaylistSound);
+  Hooks.on('userConnected', () => {
+    applyMute();
+    CALENDARIA.api.refreshWidgets();
+  });
   game.audio.unlock.then(applyMute);
 }

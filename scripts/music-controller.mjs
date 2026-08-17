@@ -19,7 +19,6 @@ export class MusicController {
   /** Creates a new MusicController instance */
   constructor() {
     this.currentContext = null;
-    this.pendingPlayback = null;
     this.suppressionTokens = new Set();
     this.suppressionCounts = new Map();
     this.activeSections = new Map();
@@ -71,25 +70,12 @@ export class MusicController {
   }
 
   /**
-   * Wait for audio to be ready or defer playback
-   * @param {Function} playCallback - Function to call when audio is ready
+   * Wait for the first user gesture, then run the playback callback
+   * @param {Function} playCallback - Function to call once audio is unlocked
    */
   async waitForAudio(playCallback) {
-    if (this.isAudioReady()) {
-      await playCallback();
-    } else {
-      this.pendingPlayback = playCallback;
-      const onAudioUnlock = async () => {
-        if (this.pendingPlayback) {
-          await this.pendingPlayback();
-          this.pendingPlayback = null;
-        }
-        document.removeEventListener('click', onAudioUnlock);
-        document.removeEventListener('keydown', onAudioUnlock);
-      };
-      document.addEventListener('click', onAudioUnlock, { once: true });
-      document.addEventListener('keydown', onAudioUnlock, { once: true });
-    }
+    await game.audio.unlock;
+    await playCallback();
   }
 
   /**
@@ -307,24 +293,40 @@ export class MusicController {
   getCurrentPlaylist() {
     this.activeSections = this.evaluateSections();
     const allContexts = this.getAllCurrentPlaylists();
-    const filteredContexts = allContexts.filter(this.filterPlaylists.bind(this));
+    const filteredContexts = allContexts.filter((context) => {
+      if (!this.filterPlaylists(context)) return false;
+      if (context.track) return true;
+      ATLAS.log(2, `Section "${context.context}" has no playable track on ${context.playlist?.name}, skipping it`);
+      return false;
+    });
     const sortedContexts = filteredContexts.sort(this.sortPlaylists.bind(this));
     return sortedContexts.length > 0 ? sortedContexts[0] : null;
   }
 
   /**
    * Play the current track based on context
-   * Transitions are serialized, so overlapping callers cannot tear the current context
    * @returns {Promise<void>} Resolves once this transition has run
    */
   async playCurrentTrack() {
     if (!isHeadGM() || !game.ready) return;
     const transition = this.playbackChain.then(async () => {
       const newContext = this.getCurrentPlaylist();
+      if (!this.currentContext) await this.stopOrphanedTrack(newContext);
       await this.playMusic(newContext);
     });
     this.playbackChain = transition.catch(() => {});
     return transition;
+  }
+
+  /**
+   * Stop a track left playing by a previous session or a previous head GM
+   * @param {PlaylistContext|null} context - The context about to play
+   */
+  async stopOrphanedTrack(context) {
+    const orphan = this.resolveNowPlaying(game.settings.get(CONST.moduleId, CONST.settings.nowPlaying));
+    if (!orphan || orphan === context?.track || !orphan.playing) return;
+    ATLAS.log(3, `Stopping ${orphan.name}, left playing by a previous session`);
+    await orphan.update({ playing: false, pausedTime: null });
   }
 
   /**
@@ -360,6 +362,7 @@ export class MusicController {
     const newTrack = context?.track;
     if (prevTrack === newTrack) {
       this.currentContext = context;
+      await this.updateNowPlaying(context);
       return;
     }
     if (prevTrack) {
@@ -385,7 +388,20 @@ export class MusicController {
     if (!isHeadGM()) return;
     const track = context?.track;
     const value = track ? { playlistId: track.parent.id, trackId: track.id, name: track.name, context: context.context } : null;
+    const stored = game.settings.get(CONST.moduleId, CONST.settings.nowPlaying);
+    if (this.sameNowPlaying(stored, value)) return;
     await game.settings.set(CONST.moduleId, CONST.settings.nowPlaying, value);
+  }
+
+  /**
+   * Compare two now-playing payloads by the fields consumers react to
+   * @param {object|null} a - First payload
+   * @param {object|null} b - Second payload
+   * @returns {boolean} True if both describe the same track in the same context
+   */
+  sameNowPlaying(a, b) {
+    if (!a || !b) return !a && !b;
+    return a.playlistId === b.playlistId && a.trackId === b.trackId && a.context === b.context;
   }
 
   /**
@@ -403,10 +419,11 @@ export class MusicController {
    * @param {object|null} value - New now-playing value
    */
   emitTrackChanged(value) {
-    const prev = this.resolveNowPlaying(this.lastNowPlaying);
-    const current = this.resolveNowPlaying(value);
+    const previous = this.lastNowPlaying;
     this.lastNowPlaying = value;
-    if (prev === current) return;
+    if (this.sameNowPlaying(previous, value)) return;
+    const prev = this.resolveNowPlaying(previous);
+    const current = this.resolveNowPlaying(value);
     Hooks.callAll('vgmusic.trackChanged', { prev, current, context: value?.context ?? null });
   }
 }

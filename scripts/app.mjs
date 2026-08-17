@@ -691,6 +691,11 @@ export function handleTokenConfigRender(app, html, _context, _options) {
   }
 }
 
+/** Handle a user connecting or disconnecting, which can move head-GM status to this client */
+export function handleUserConnected() {
+  musicController.playCurrentTrack();
+}
+
 /**
  * Handle game ready to start music after delay
  */

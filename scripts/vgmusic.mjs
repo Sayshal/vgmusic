@@ -11,6 +11,7 @@ import {
   handleUpdateCombat,
   handleUpdateScene,
   handleUpdateToken,
+  handleUserConnected,
   VGMusicConfig
 } from './app.mjs';
 import { registerSection } from './config.mjs';
@@ -45,3 +46,4 @@ Hooks.on('updateToken', handleUpdateToken);
 Hooks.on('createCombatant', handleCreateCombatant);
 Hooks.on('deleteCombatant', handleDeleteCombatant);
 Hooks.on('renderTokenApplication', handleTokenConfigRender);
+Hooks.on('userConnected', handleUserConnected);
