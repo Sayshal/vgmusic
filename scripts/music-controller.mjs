@@ -1,7 +1,7 @@
 import { DOCUMENT_SORT_PRIORITY, HOOKS, MODULE, SETTINGS, SILENT_MODES } from './constants.mjs';
 import { PlaylistContext } from './playlist-context.mjs';
 import { getRegisteredSections } from './section-registry.mjs';
-import { isContextSuppressed, isHeadGM } from './utils.mjs';
+import { isContextSuppressed } from './utils.mjs';
 
 /**
  * Get document type name, treating PrototypeToken as 'Token'
@@ -202,7 +202,7 @@ export class MusicController {
    * @returns {object} Opaque token to pass back to releaseSuppression
    */
   requestSuppression(context) {
-    if (!isHeadGM()) {
+    if (!ATLAS.isPrimaryGM) {
       ATLAS.log(2, 'Suppression tokens are a head GM operation, ignoring this request');
       return null;
     }
@@ -316,7 +316,7 @@ export class MusicController {
    * @returns {Promise<void>} Resolves once this transition has run
    */
   async playCurrentTrack() {
-    if (!isHeadGM() || !game.ready) return;
+    if (!ATLAS.isPrimaryGM || !game.ready) return;
     const transition = this.playbackChain.then(async () => {
       const newContext = this.getCurrentPlaylist();
       if (!this.currentContext) await this.stopOrphanedTrack(newContext);
@@ -343,7 +343,7 @@ export class MusicController {
    */
   async savePlaylistData(entity) {
     if (entity instanceof Combat && !game.combats.get(entity.id)) return;
-    if (!this.currentTrack || !entity || !isHeadGM()) return;
+    if (!this.currentTrack || !entity || !ATLAS.isPrimaryGM) return;
     const track = this.currentTrack;
     const flagData = { id: track.parent.id, trackId: track.id, start: (track.sound?.currentTime ?? 0) % (track.sound?.duration ?? 100) };
     await entity.setFlag(MODULE.ID, `playlist.${track.parent.id}.${track.id}`, flagData);
@@ -381,7 +381,7 @@ export class MusicController {
    * @param {PlaylistContext|null} context - The context now playing
    */
   async updateNowPlaying(context) {
-    if (!isHeadGM()) return;
+    if (!ATLAS.isPrimaryGM) return;
     const track = context?.track;
     const value = track ? { playlistId: track.parent.id, trackId: track.id, name: track.name, context: context.context } : null;
     const stored = game.settings.get(MODULE.ID, SETTINGS.NOW_PLAYING);
