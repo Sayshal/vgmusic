@@ -2,10 +2,10 @@
   {{#if rows.length}}
     <ol class="section-rows">
       <li class="section-row column-headers">
-        <span>{{localize "VGMusic.Section"}}</span>
-        <span>{{localize "VGMusic.Playlist"}}</span>
-        <span>{{localize "VGMusic.InitialTrack"}}</span>
-        <span class="priority">{{localize "VGMusic.Priority"}}</span>
+        <span>{{localize "VGMUSIC.Section"}}</span>
+        <span>{{localize "VGMUSIC.Playlist"}}</span>
+        <span>{{localize "VGMUSIC.InitialTrack"}}</span>
+        <span class="priority">{{localize "VGMUSIC.Priority"}}</span>
         <span></span>
       </li>
       {{#each rows as |row|}}
@@ -20,7 +20,7 @@
           <span class="priority">{{row.priority}}</span>
           <span class="row-controls">
             <button type="button" data-action="configureSection"
-              data-tooltip="{{localize 'VGMusic.SectionConfig.Edit'}}">
+              data-tooltip="{{localize 'VGMUSIC.SectionConfig.Edit'}}">
               <i class="fas fa-pen"></i>
             </button>
             <button type="button" data-action="deletePlaylist" data-tooltip="{{localize 'Delete'}}">
@@ -31,5 +31,5 @@
       {{/each}}
     </ol>
   {{/if}}
-  <p class="hint">{{localize "VGMusic.ConfigHelp"}}</p>
+  <p class="hint">{{localize "VGMUSIC.ConfigHelp"}}</p>
 </div>

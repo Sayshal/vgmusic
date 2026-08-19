@@ -22,13 +22,13 @@ export const HOOKS = { TRACK_CHANGED: 'vgmusic.trackChanged', SUPPRESSION_CHANGE
 
 /** @type {object} Built-in playlist sections, keyed by document type name. */
 export const PLAYLIST_SECTIONS = {
-  DefaultMusic: { combat: { label: 'VGMusic.PlaylistSection.Combat', priority: -5, hint: 'VGMusic.PlaylistSection.Hint.DefaultCombat' } },
+  DefaultMusic: { combat: { label: 'VGMUSIC.PlaylistSection.Combat', priority: -5, hint: 'VGMUSIC.PlaylistSection.Hint.DefaultCombat' } },
   Scene: {
-    area: { label: 'VGMusic.PlaylistSection.Area', priority: -20, hint: 'VGMusic.PlaylistSection.Hint.SceneArea' },
-    combat: { label: 'VGMusic.PlaylistSection.Combat', priority: -10, hint: 'VGMusic.PlaylistSection.Hint.SceneCombat' }
+    area: { label: 'VGMUSIC.PlaylistSection.Area', priority: -20, hint: 'VGMUSIC.PlaylistSection.Hint.SceneArea' },
+    combat: { label: 'VGMUSIC.PlaylistSection.Combat', priority: -10, hint: 'VGMUSIC.PlaylistSection.Hint.SceneCombat' }
   },
-  Actor: { combat: { label: 'VGMusic.PlaylistSection.Combat', priority: 0, hint: 'VGMusic.PlaylistSection.Hint.ActorCombat' } },
-  Token: { combat: { label: 'VGMusic.PlaylistSection.Combat', priority: 5, hint: 'VGMusic.PlaylistSection.Hint.TokenCombat' } }
+  Actor: { combat: { label: 'VGMUSIC.PlaylistSection.Combat', priority: 0, hint: 'VGMUSIC.PlaylistSection.Hint.ActorCombat' } },
+  Token: { combat: { label: 'VGMUSIC.PlaylistSection.Combat', priority: 5, hint: 'VGMUSIC.PlaylistSection.Hint.TokenCombat' } }
 };
 
 /** @type {string[]} Document type names in ascending playback precedence, the final sort tiebreak. */

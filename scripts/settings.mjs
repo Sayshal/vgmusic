@@ -7,12 +7,12 @@ const { SetField, StringField } = foundry.data.fields;
 
 /** Calendaria insertion points the now-playing widget can occupy */
 const WIDGET_POINT_CHOICES = {
-  'hud.indicators': 'VGMusic.Settings.NowPlayingWidget.HudIndicators',
-  'hud.tray': 'VGMusic.Settings.NowPlayingWidget.HudTray',
-  'hud.buttons.left': 'VGMusic.Settings.NowPlayingWidget.HudButtonsLeft',
-  'hud.buttons.right': 'VGMusic.Settings.NowPlayingWidget.HudButtonsRight',
-  'minical.sidebar': 'VGMusic.Settings.NowPlayingWidget.MiniCalSidebar',
-  'bigcal.actions': 'VGMusic.Settings.NowPlayingWidget.BigCalActions'
+  'hud.indicators': 'VGMUSIC.Settings.NowPlayingWidget.HudIndicators',
+  'hud.tray': 'VGMUSIC.Settings.NowPlayingWidget.HudTray',
+  'hud.buttons.left': 'VGMUSIC.Settings.NowPlayingWidget.HudButtonsLeft',
+  'hud.buttons.right': 'VGMUSIC.Settings.NowPlayingWidget.HudButtonsRight',
+  'minical.sidebar': 'VGMUSIC.Settings.NowPlayingWidget.MiniCalSidebar',
+  'bigcal.actions': 'VGMUSIC.Settings.NowPlayingWidget.BigCalActions'
 };
 
 /**
@@ -20,16 +20,16 @@ const WIDGET_POINT_CHOICES = {
  */
 export function registerSettings() {
   game.settings.register(MODULE.ID, SETTINGS.SILENT_COMBAT_MUSIC_MODE, {
-    name: 'VGMusic.Settings.SilentCombatMusicMode.Name',
-    hint: 'VGMusic.Settings.SilentCombatMusicMode.Hint',
+    name: 'VGMUSIC.Settings.SilentCombatMusicMode.Name',
+    hint: 'VGMUSIC.Settings.SilentCombatMusicMode.Hint',
     scope: 'world',
     config: true,
     type: String,
     choices: {
-      [SILENT_MODES.HIGHEST_PRIORITY]: 'VGMusic.Settings.SilentCombatMusicMode.HighestPriority',
-      [SILENT_MODES.LAST_ACTOR]: 'VGMusic.Settings.SilentCombatMusicMode.LastActor',
-      [SILENT_MODES.AREA]: 'VGMusic.Settings.SilentCombatMusicMode.Area',
-      [SILENT_MODES.GENERIC]: 'VGMusic.Settings.SilentCombatMusicMode.Generic'
+      [SILENT_MODES.HIGHEST_PRIORITY]: 'VGMUSIC.Settings.SilentCombatMusicMode.HighestPriority',
+      [SILENT_MODES.LAST_ACTOR]: 'VGMUSIC.Settings.SilentCombatMusicMode.LastActor',
+      [SILENT_MODES.AREA]: 'VGMUSIC.Settings.SilentCombatMusicMode.Area',
+      [SILENT_MODES.GENERIC]: 'VGMUSIC.Settings.SilentCombatMusicMode.Generic'
     },
     default: SILENT_MODES.HIGHEST_PRIORITY,
     onChange: () => {
@@ -38,16 +38,16 @@ export function registerSettings() {
   });
 
   game.settings.registerMenu(MODULE.ID, 'defaultMusicMenu', {
-    name: 'VGMusic.Settings.DefaultMusic.Name',
-    label: 'VGMusic.Settings.DefaultMusic.Label',
-    hint: 'VGMusic.Settings.DefaultMusic.Hint',
+    name: 'VGMUSIC.Settings.DefaultMusic.Name',
+    label: 'VGMUSIC.Settings.DefaultMusic.Label',
+    hint: 'VGMUSIC.Settings.DefaultMusic.Hint',
     icon: 'fas fa-music',
     type: VGMusicConfig,
     restricted: true
   });
 
   game.settings.register(MODULE.ID, SETTINGS.DEFAULT_MUSIC, {
-    name: 'VGMusic.Settings.DefaultMusic.Name',
+    name: 'VGMUSIC.Settings.DefaultMusic.Name',
     scope: 'world',
     config: false,
     type: Object,
@@ -65,8 +65,8 @@ export function registerSettings() {
   });
 
   game.settings.register(MODULE.ID, SETTINGS.NOW_PLAYING_WIDGET, {
-    name: 'VGMusic.Settings.NowPlayingWidget.Name',
-    hint: 'VGMusic.Settings.NowPlayingWidget.Hint',
+    name: 'VGMUSIC.Settings.NowPlayingWidget.Name',
+    hint: 'VGMUSIC.Settings.NowPlayingWidget.Hint',
     scope: 'world',
     config: !!game.modules.get('calendaria')?.active,
     type: new SetField(new StringField({ choices: WIDGET_POINT_CHOICES, blank: false })),
@@ -98,13 +98,13 @@ export function registerSettings() {
  */
 export function registerKeybindings() {
   game.keybindings.register(MODULE.ID, KEYBINDS.TOGGLE_AREA_MUSIC, {
-    name: 'VGMusic.Keybindings.ToggleAreaMusic',
+    name: 'VGMUSIC.Keybindings.ToggleAreaMusic',
     restricted: true,
     onDown: () => toggleAreaMusic()
   });
 
   game.keybindings.register(MODULE.ID, KEYBINDS.TOGGLE_COMBAT_MUSIC, {
-    name: 'VGMusic.Keybindings.ToggleCombatMusic',
+    name: 'VGMUSIC.Keybindings.ToggleCombatMusic',
     restricted: true,
     onDown: () => toggleCombatMusic()
   });

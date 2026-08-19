@@ -33,10 +33,10 @@ function sectionFormContext({ sections, playlist, section, initialTrack, priorit
  */
 async function promptSectionConfig(options) {
   return DialogV2.prompt({
-    window: { title: game.i18n.format('VGMusic.SectionConfig.Title', { playlist: options.playlist?.name ?? '' }), icon: 'fas fa-music' },
+    window: { title: game.i18n.format('VGMUSIC.SectionConfig.Title', { playlist: options.playlist?.name ?? '' }), icon: 'fas fa-music' },
     content: await renderTemplate(TEMPLATES.SECTION_CONFIG, sectionFormContext(options)),
     ok: {
-      label: 'VGMusic.SectionConfig.Assign',
+      label: 'VGMUSIC.SectionConfig.Assign',
       icon: 'fas fa-check',
       callback: (_event, button) => ({
         section: button.form.elements.section.value,
@@ -66,7 +66,7 @@ export class VGMusicConfig extends HandlebarsApplicationMixin(ApplicationV2) {
   static DEFAULT_OPTIONS = {
     id: 'vgmusic-config-{id}',
     tag: 'div',
-    window: { title: 'VGMusic.ConfigTitle', icon: 'fas fa-music', resizable: true },
+    window: { title: 'VGMUSIC.ConfigTitle', icon: 'fas fa-music', resizable: true },
     position: { width: 560, height: 'auto' },
     actions: {
       openPlaylist: VGMusicConfig.openPlaylist,
@@ -130,8 +130,8 @@ export class VGMusicConfig extends HandlebarsApplicationMixin(ApplicationV2) {
           id: key,
           label: _loc(config.label),
           playlistId: data.playlist,
-          playlistName: playlist?.name ?? _loc('VGMusic.MissingPlaylist'),
-          trackName: playlist?.sounds.get(data.initialTrack)?.name ?? _loc('VGMusic.Default'),
+          playlistName: playlist?.name ?? _loc('VGMUSIC.MissingPlaylist'),
+          trackName: playlist?.sounds.get(data.initialTrack)?.name ?? _loc('VGMUSIC.Default'),
           priority: data.priority ?? config.priority ?? 0
         };
       })
@@ -234,7 +234,7 @@ export class VGMusicConfig extends HandlebarsApplicationMixin(ApplicationV2) {
       }
     } catch (error) {
       ATLAS.log(1, 'Error updating data:', error);
-      ui.notifications.error('VGMusic.Error.SaveFailed');
+      ui.notifications.error('VGMUSIC.Error.SaveFailed');
       return;
     }
     this.render(false);

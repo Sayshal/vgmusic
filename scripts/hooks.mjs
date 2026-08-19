@@ -14,7 +14,7 @@ function onGetSceneControlButtons(controls) {
       controls.sounds.tools['suppress-area-music'] = {
         name: 'suppress-area-music',
         order: 10,
-        title: 'VGMusic.Controls.SuppressAreaMusic',
+        title: 'VGMUSIC.Controls.SuppressAreaMusic',
         icon: 'fas fa-dungeon',
         toggle: true,
         visible: true,
@@ -24,7 +24,7 @@ function onGetSceneControlButtons(controls) {
       controls.sounds.tools['suppress-combat-music'] = {
         name: 'suppress-combat-music',
         order: 11,
-        title: 'VGMusic.Controls.SuppressCombatMusic',
+        title: 'VGMUSIC.Controls.SuppressCombatMusic',
         icon: 'fas fa-fist-raised',
         toggle: true,
         visible: true,
@@ -51,16 +51,16 @@ function onRenderSceneConfig(app, html) {
     const newFormGroup = document.createElement('div');
     newFormGroup.className = 'form-group';
     const label = document.createElement('label');
-    label.textContent = _loc('VGMusic.Music');
+    label.textContent = _loc('VGMUSIC.Music');
     const formFields = document.createElement('div');
     formFields.className = 'form-fields';
     const button = document.createElement('button');
     button.type = 'button';
     button.dataset.action = 'vgmusic-scene';
-    button.innerHTML = `<i class="fas fa-music"></i> ${_loc('VGMusic.ConfigTitle')}`;
+    button.innerHTML = `<i class="fas fa-music"></i> ${_loc('VGMUSIC.ConfigTitle')}`;
     const hint = document.createElement('p');
     hint.className = 'hint';
-    hint.textContent = _loc('VGMusic.Settings.DefaultMusic.Hint');
+    hint.textContent = _loc('VGMUSIC.Settings.DefaultMusic.Hint');
     formFields.appendChild(button);
     newFormGroup.appendChild(label);
     newFormGroup.appendChild(formFields);
@@ -158,13 +158,13 @@ function onRenderTokenApplication(app, html, _context, _options) {
     const formGroup = document.createElement('div');
     formGroup.className = 'form-group';
     const label = document.createElement('label');
-    label.textContent = _loc('VGMusic.Music');
+    label.textContent = _loc('VGMUSIC.Music');
     const formFields = document.createElement('div');
     formFields.className = 'form-fields';
     const button = document.createElement('button');
     button.type = 'button';
     button.className = 'vgmusic-token-config';
-    button.innerHTML = `<i class="fas fa-music"></i> ${_loc('VGMusic.ConfigTitle')}`;
+    button.innerHTML = `<i class="fas fa-music"></i> ${_loc('VGMUSIC.ConfigTitle')}`;
     button.addEventListener('click', (event) => {
       event.preventDefault();
       new VGMusicConfig(token).render(true);
@@ -179,7 +179,7 @@ function onRenderTokenApplication(app, html, _context, _options) {
       const checkboxGroup = document.createElement('div');
       checkboxGroup.className = 'form-group';
       const checkLabel = document.createElement('label');
-      checkLabel.textContent = _loc('VGMusic.UseTokenMusic.Label');
+      checkLabel.textContent = _loc('VGMUSIC.UseTokenMusic.Label');
       const checkFields = document.createElement('div');
       checkFields.className = 'form-fields';
       const checkbox = document.createElement('input');
@@ -191,7 +191,7 @@ function onRenderTokenApplication(app, html, _context, _options) {
       checkboxGroup.appendChild(checkFields);
       const hint = document.createElement('p');
       hint.className = 'hint';
-      hint.textContent = _loc('VGMusic.UseTokenMusic.Hint');
+      hint.textContent = _loc('VGMUSIC.UseTokenMusic.Hint');
       checkboxGroup.appendChild(hint);
       formGroup.insertAdjacentElement('afterend', checkboxGroup);
     }
@@ -221,7 +221,7 @@ export async function onReady() {
  */
 function onGetSceneContextOptions(_application, options) {
   options.push({
-    label: 'VGMusic.ConfigTitle',
+    label: 'VGMUSIC.ConfigTitle',
     icon: 'fas fa-music',
     onClick: (_event, li) => {
       const scene = game.scenes.get(li.dataset.sceneId ?? li.dataset.entryId);

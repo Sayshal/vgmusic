@@ -95,11 +95,11 @@ function getLabel() {
  * @returns {string} Tooltip text
  */
 function getTooltip() {
-  if (game.user.isGM && isSuppressed()) return game.i18n.localize('VGMusic.NowPlaying.Release');
+  if (game.user.isGM && isSuppressed()) return game.i18n.localize('VGMUSIC.NowPlaying.Release');
   const name = getMirror()?.name;
-  if (!name) return game.i18n.localize('VGMusic.NowPlaying.Nothing');
+  if (!name) return game.i18n.localize('VGMUSIC.NowPlaying.Nothing');
   const key = game.user.isGM ? 'Suppress' : isMuted() ? 'Unmute' : 'Mute';
-  return game.i18n.format(`VGMusic.NowPlaying.${key}`, { track: foundry.utils.escapeHTML(name) });
+  return game.i18n.format(`VGMUSIC.NowPlaying.${key}`, { track: foundry.utils.escapeHTML(name) });
 }
 
 /** Suppress the playing context for every client as a GM, or mute locally as a player */
