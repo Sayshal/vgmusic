@@ -131,7 +131,7 @@ export class VGMusicConfig extends HandlebarsApplicationMixin(ApplicationV2) {
           label: _loc(config.label),
           playlistId: data.playlist,
           playlistName: playlist?.name ?? _loc('VGMUSIC.MissingPlaylist'),
-          trackName: playlist?.sounds.get(data.initialTrack)?.name ?? _loc('VGMUSIC.Default'),
+          trackName: playlist?.sounds.get(data.initialTrack)?.name ?? _loc('ATLAS.Common.Default'),
           priority: data.priority ?? config.priority ?? 0
         };
       })

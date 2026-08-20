@@ -12,7 +12,7 @@ const WIDGET_POINT_CHOICES = {
   'hud.buttons.left': 'VGMUSIC.Settings.NowPlayingWidget.HudButtonsLeft',
   'hud.buttons.right': 'VGMUSIC.Settings.NowPlayingWidget.HudButtonsRight',
   'minical.sidebar': 'VGMUSIC.Settings.NowPlayingWidget.MiniCalSidebar',
-  'bigcal.actions': 'VGMUSIC.Settings.NowPlayingWidget.BigCalActions'
+  'bigcal.actions': 'ATLAS.Common.CalendarActions'
 };
 
 /**
