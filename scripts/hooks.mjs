@@ -60,7 +60,7 @@ function onRenderSceneConfig(app, html) {
     button.innerHTML = `<i class="fas fa-music"></i> ${_loc('VGMUSIC.ConfigTitle')}`;
     const hint = document.createElement('p');
     hint.className = 'hint';
-    hint.textContent = _loc('VGMUSIC.Settings.DefaultMusic.Hint');
+    hint.textContent = _loc('VGMUSIC.SceneConfig.Hint');
     formFields.appendChild(button);
     newFormGroup.appendChild(label);
     newFormGroup.appendChild(formFields);
