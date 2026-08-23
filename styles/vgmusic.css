@@ -1,0 +1,135 @@
+.vgmusic {
+  .window-content {
+    gap: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    padding: 0.5rem;
+    color: var(--atlas-text);
+    background: var(--atlas-bg);
+  }
+
+  .dialog-content {
+    color: var(--atlas-text);
+
+    input:not([type='checkbox']),
+    select {
+      border: 0.0625rem solid var(--atlas-border);
+      color: var(--atlas-text);
+      background: var(--atlas-input-bg);
+    }
+
+    input:not([type='checkbox']):focus,
+    select:focus {
+      border-color: var(--atlas-primary);
+      outline: none;
+      box-shadow: none;
+    }
+
+    select option {
+      color: var(--atlas-text);
+      background: var(--atlas-bg);
+    }
+
+    .hint {
+      color: var(--atlas-text-dim);
+    }
+  }
+
+  .vgmusic-sections {
+    gap: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    padding: 0.5rem;
+    border: 0.0625rem dashed transparent;
+    border-radius: 0.25rem;
+  }
+
+  .vgmusic-sections.drop-hover {
+    border-color: var(--atlas-primary);
+    background: color-mix(in srgb, var(--atlas-primary) 10%, transparent);
+  }
+
+  .section-rows {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .section-row {
+    gap: 0.5rem;
+    grid-template-columns: minmax(6rem, 1fr) minmax(7rem, 1.3fr) minmax(5rem, 1fr) 4.5rem 3.5rem;
+    display: grid;
+    align-items: center;
+    padding: 0.3rem 0;
+  }
+
+  .section-row + .section-row {
+    border-top: 0.0625rem solid color-mix(in srgb, var(--atlas-border) 45%, transparent);
+  }
+
+  .column-headers {
+    color: var(--atlas-text-dim);
+    font-weight: 600;
+    font-size: var(--font-size-11);
+    text-transform: uppercase;
+  }
+
+  .section-label {
+    color: var(--atlas-text);
+    font-weight: 600;
+  }
+
+  .track-name {
+    color: var(--atlas-text-dim);
+  }
+
+  .priority {
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+
+  .playlist-name {
+    gap: 0.35rem;
+    display: inline-flex;
+    justify-content: flex-start;
+    align-items: center;
+    width: auto;
+    margin: 0;
+    padding: 0;
+    border: none;
+    color: var(--atlas-text);
+    text-align: left;
+    background: none;
+  }
+
+  .row-controls {
+    gap: 0.25rem;
+    display: inline-flex;
+    justify-content: flex-end;
+  }
+
+  .row-controls button {
+    flex: 0 0 auto;
+    width: 1.5rem;
+    height: 1.5rem;
+    margin: 0;
+    padding: 0;
+    border: none;
+    line-height: 1;
+    background: none;
+  }
+
+  .playlist-name:hover,
+  .row-controls button:hover {
+    color: var(--atlas-primary);
+    text-shadow: none;
+  }
+
+  .vgmusic-sections > .hint {
+    margin: 0;
+    color: var(--atlas-text-dim);
+    font-size: var(--font-size-12);
+  }
+}

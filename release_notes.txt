@@ -1,18 +1,47 @@
 ## Breaking Changes
 
-- Minimum supported Foundry version is now v14; Foundry v13 is no longer supported.
-- Video Game Music now requires the 3DS:ATLAS module; ATLAS must be installed and enabled or the module will not load.
+- The area and combat suppression toggles now share one world setting that covers every music context, including sections added by other modules. Previous suppression toggles are not carried over and start unsuppressed after updating.
+- The Fade Duration module setting is gone. Each playlist's own Fade Duration field in the Playlists sidebar now controls how module music fades in and out.
+- The module API moved from game.vgmusic to globalThis.VGMUSIC, and is also published on game.modules.get('vgmusic').api. Macros and modules that referenced game.vgmusic need updating.
+- Tracks silenced by the old fade path still hold a volume of 0 in world data. Raise the volume slider on any track that plays silent after updating.
+
+## New Features
+
+- A Music Configuration entry was added to the scene navigation and scene sidebar context menus.
+- A new world setting picks which Calendaria slots the widget occupies. It only appears in the settings menu when Calendaria is active, and changing it requires a reload.
+- A vgmusic.trackChanged hook now fires on every connected client whenever the playing track changes.
+- Clicking the now-playing widget as a GM suppresses the current music context for everyone until clicked again. A player clicking it mutes module music for themselves only, and that mute persists across track changes.
+- Dropping a playlist anywhere on the music config window opens a prompt asking which section it belongs to, its starting track and its priority, with a description of each section shown as you select it. A pencil button on each row reopens the same prompt, and choosing a different section moves the assignment.
+- Module API additions: registerSection returns a handle with unregister and refresh, unregisterSection, getRegisteredSections and refreshSections are exposed on VGMUSIC, and a vgmusic.suppressionChanged hook fires when the suppressed set changes.
+- Other modules can now register their own playlist sections, which appear in the music config alongside the built-in ones, and can temporarily suppress a music context without flipping the GM suppress settings.
+- With Calendaria installed, a now-playing widget appears in its HUD, naming the current track beside the icon. The icon turns green while a track is playing and red when silenced.
 
 ## Bug Fixes
 
-- The "Get In Touch" Discord link on the issue tracker now correctly references Video Game Music instead of another module.
+- A GM who muted the module before gaining GM rights is no longer left silent, since a GM's local mute is ignored.
+- A scene's stored resume positions are no longer wiped when the scene is deactivated.
+- A section whose playlist has no playable track is now skipped instead of winning the sort and silencing every section below it.
+- A track left playing by a previous session or a previous primary GM is now stopped before the next one starts.
+- A track name containing a double quote no longer breaks the Calendaria widget's label and tooltip.
+- Combat music now follows the active encounter on the current scene, so a stale encounter left in the tracker no longer shadows the running fight.
+- Every playlist row in the music config was labelled "Combat Music" regardless of the section it belonged to. Each row now names the section it is assigned to.
+- In the area and generic silent-combat modes, section ordering now compares both sides of a pair, so the priority tiebreak is reachable again.
+- Music transitions are queued instead of overlapping, and playback no longer starts before the world is ready.
+- Playback is re-evaluated when a user connects or disconnects, so music follows the new primary GM when that role moves.
+- Saving a resume position no longer re-triggers a playback refresh, and a client's mute is now re-applied after audio unlocks and whenever the playing track's volume re-syncs.
+- The flag write that raised a permission error on every player client is gone.
+- The music config window now opens separately from Scene Config and Token Config instead of the second replacing the first.
+- The now-playing state and vgmusic.trackChanged hook now update when the context changes on the same track.
+- The suppression keybindings are restricted to GMs.
+- Track transitions no longer write volume changes into your playlist tracks, so an interrupted fade can no longer leave a track permanently silent.
 
 ## Changes
 
-- Added a Patreon link to the project's funding options alongside the existing Ko-fi link.
-- English and Portuguese (Brazil) text is now provided through ATLAS instead of bundled with the module.
-- The bug report form now asks for your game system and version (not just D&D) and suggests current examples (Foundry 14.364, dnd5e 6.0.0).
-
-## Documentation
-
-- Rewrote the module description shown in Foundry's package listing to explain the automatic combat/exploration music switching, per-scene and per-token battle themes, and resume-from-where-it-left-off playback.
+- Playlist sections registered by other modules are now validated on registration, and a section that throws while resolving its music is skipped. Rejections are written to the console.
+- The GM client that drives playback is now the primary GM chosen in ATLAS, instead of whichever active GM sorted first internally. Track changes, saved resume positions, the now-playing state and suppression requests all run on that GM.
+- The hint under the Music button in Scene Config now reads "Configure the music that plays on this scene." instead of repeating the world Default Music setting hint.
+- The music config window now lists every assigned playlist in a single table ordered by the priority that decides playback, replacing the separate box per section.
+- The music config window now uses the module's own stylesheet and follows ATLAS theming instead of borrowing the dnd5e system's styling.
+- The Save and Reset buttons are gone. Every change is written as it is made, and a failed write reports an error notification.
+- The Scene Config and Token Config music fields are now labelled "Music" instead of "Combat Music", since the dialog they open configures every registered section rather than combat alone.
+- Verified compatibility bumped to Foundry v14.366.

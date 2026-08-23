@@ -1,0 +1,23 @@
+<input type="hidden" name="sectionMeta" value="{{meta}}">
+<div class="form-group">
+  <label for="vgmusic-section">{{localize "ATLAS.Common.Section"}}</label>
+  <div class="form-fields">
+    <select id="vgmusic-section" name="section">{{{selectOptions sections selected=section}}}</select>
+  </div>
+  <p class="hint" data-section-hint>{{sectionHint}}</p>
+</div>
+<div class="form-group">
+  <label for="vgmusic-initial-track">{{localize "VGMUSIC.InitialTrack"}}</label>
+  <div class="form-fields">
+    <select id="vgmusic-initial-track"
+      name="initialTrack">{{{selectOptions tracks selected=initialTrack blank=(localize "ATLAS.Common.Default")}}}</select>
+  </div>
+  <p class="hint">{{localize "VGMUSIC.SectionConfig.TrackHint"}}</p>
+</div>
+<div class="form-group">
+  <label for="vgmusic-priority">{{localize "VGMUSIC.Priority"}}</label>
+  <div class="form-fields">
+    <input id="vgmusic-priority" type="number" name="priority" value="{{priority}}">
+  </div>
+  <p class="hint">{{localize "VGMUSIC.SectionConfig.PriorityHint"}}</p>
+</div>
