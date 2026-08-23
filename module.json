@@ -13,7 +13,7 @@
   "changelog": "https://github.com/Sayshal/vgmusic/releases",
   "compatibility": {
     "minimum": "14",
-    "verified": "14.366"
+    "verified": "14.367"
   },
   "description": "Your scene's music switches to combat tracks when a fight starts and back to exploration music when it ends, just like a video game! Assign playlists per scene or give individual tokens their own battle themes, and any track that gets cut off resumes where it left off instead of restarting.",
   "download": "",
