@@ -1,7 +1,7 @@
 import { VGMusicConfig } from './apps/music-config.mjs';
 import { MODULE, SETTINGS } from './constants.mjs';
 import { registerCalendariaWidget } from './integrations/calendaria.mjs';
-import { musicController } from './music-controller.mjs';
+import { deferredToMinstrel, musicController } from './music-controller.mjs';
 import { isContextSuppressed, setContextSuppressed } from './utils.mjs';
 
 /**
@@ -105,6 +105,15 @@ function onDeleteCombatant(combatant) {
   if (combatant.parent?.started) musicController.playCurrentTrack();
 }
 
+/**
+ * Handle combatant initiative changes, which reorder turns without firing updateCombat
+ * @param {object} combatant - The updated combatant
+ * @param {object} updateData - The update data
+ */
+function onUpdateCombatant(combatant, updateData) {
+  if ('initiative' in updateData && combatant.parent?.started) musicController.playCurrentTrack();
+}
+
 /** Handle canvas ready to start music */
 function onCanvasReady() {
   musicController.playCurrentTrack();
@@ -152,7 +161,7 @@ function onRenderTokenApplication(app, html, _context, _options) {
     if (!identityTab) return;
     const nameField = identityTab.querySelector('.form-group');
     if (!nameField) return;
-    const isPrototype = app.constructor.name.includes('Prototype');
+    const isPrototype = app.isPrototype;
     const token = isPrototype ? app.actor?.prototypeToken : app.token;
     if (!token) return;
     const formGroup = document.createElement('div');
@@ -209,6 +218,10 @@ function onUserConnected() {
 export async function onReady() {
   musicController.lastNowPlaying = game.settings.get(MODULE.ID, SETTINGS.NOW_PLAYING);
   registerCalendariaWidget();
+  if (deferredToMinstrel()) {
+    ATLAS.log(3, 'Minstrel is active, leaving scene and combat music to it');
+    return;
+  }
   setTimeout(() => {
     musicController.playCurrentTrack();
   }, 1000);
@@ -246,6 +259,7 @@ export function registerHooks() {
   Hooks.on('updateToken', onUpdateToken);
   Hooks.on('createCombatant', onCreateCombatant);
   Hooks.on('deleteCombatant', onDeleteCombatant);
+  Hooks.on('updateCombatant', onUpdateCombatant);
   Hooks.on('renderTokenApplication', onRenderTokenApplication);
   Hooks.on('userConnected', onUserConnected);
 }
