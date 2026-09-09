@@ -225,7 +225,7 @@ export class VGMusicConfig extends HandlebarsApplicationMixin(ApplicationV2) {
         const prevData = game.settings.get(MODULE.ID, SETTINGS.DEFAULT_MUSIC);
         const updateData = foundry.utils.mergeObject(prevData, foundry.utils.expandObject(expandedData), {
           inplace: false,
-          performDeletions: true
+          applyOperators: true
         });
         await game.settings.set(MODULE.ID, SETTINGS.DEFAULT_MUSIC, updateData);
         this.document = game.settings.get(MODULE.ID, SETTINGS.DEFAULT_MUSIC);
