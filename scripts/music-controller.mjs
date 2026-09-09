@@ -15,6 +15,35 @@ function getEntityTypeName(entity) {
 }
 
 /**
+ * Check whether a context entity was sourced from a combatant rather than the scene or world defaults
+ * @param {Document|object} entity - The entity to check
+ * @returns {boolean} True for a TokenDocument, PrototypeToken or Actor
+ */
+function isCombatantSourced(entity) {
+  const typeName = getEntityTypeName(entity);
+  return typeName === 'Token' || typeName === 'Actor';
+}
+
+/**
+ * Check whether a context entity belongs to a given combatant
+ * @param {Document|object} entity - The entity to check
+ * @param {object} combatant - The combatant to test against
+ * @returns {boolean} True when the entity is that combatant's token, actor or prototype token
+ */
+function ownsCombatant(entity, combatant) {
+  if (!entity || !combatant) return false;
+  return entity === combatant.token || entity === combatant.actor || entity === combatant.actor?.prototypeToken;
+}
+
+/**
+ * Check whether Minstrel is installed and has taken over scene and combat music
+ * @returns {boolean} True when this module should leave playback alone
+ */
+export function deferredToMinstrel() {
+  return game.modules.get('minstrel')?.active === true;
+}
+
+/**
  * Core music controller for managing playlist playback
  */
 export class MusicController {
@@ -245,6 +274,10 @@ export class MusicController {
     if (context.context === 'combat' && !combat?.started) return false;
     if (this.isSuppressed(context.context)) return false;
     if (this.activeSections.get(context.context) === false) return false;
+    if (context.context === 'combat' && isCombatantSourced(context.contextEntity)) {
+      const silentMode = game.settings.get(MODULE.ID, SETTINGS.SILENT_COMBAT_MUSIC_MODE);
+      if (silentMode !== SILENT_MODES.LAST_ACTOR && !ownsCombatant(context.contextEntity, combat?.combatant)) return false;
+    }
     return true;
   }
 
@@ -257,11 +290,8 @@ export class MusicController {
   sortPlaylists(a, b) {
     const combat = this.currentCombat;
     const currentCombatant = combat?.combatant;
-    const currentToken = currentCombatant?.token;
-    const currentActor = currentCombatant?.actor;
-    const currentPrototype = currentActor?.prototypeToken;
-    const isCurrentA = a.contextEntity === currentToken || a.contextEntity === currentActor || a.contextEntity === currentPrototype;
-    const isCurrentB = b.contextEntity === currentToken || b.contextEntity === currentActor || b.contextEntity === currentPrototype;
+    const isCurrentA = ownsCombatant(a.contextEntity, currentCombatant);
+    const isCurrentB = ownsCombatant(b.contextEntity, currentCombatant);
     if (isCurrentA && !isCurrentB) return -1;
     if (isCurrentB && !isCurrentA) return 1;
     const silentMode = game.settings.get(MODULE.ID, SETTINGS.SILENT_COMBAT_MUSIC_MODE);
@@ -272,10 +302,9 @@ export class MusicController {
         let i = startIdx;
         do {
           i = (i - 1 + combatants.length) % combatants.length;
-          const actor = combatants[i]?.actor;
-          const prototype = actor?.prototypeToken;
-          if (a.contextEntity === actor || a.contextEntity === prototype) return -1;
-          if (b.contextEntity === actor || b.contextEntity === prototype) return 1;
+          const combatant = combatants[i];
+          if (ownsCombatant(a.contextEntity, combatant)) return -1;
+          if (ownsCombatant(b.contextEntity, combatant)) return 1;
         } while (i !== (startIdx + 1) % combatants.length);
       }
     } else if (silentMode === SILENT_MODES.AREA || silentMode === SILENT_MODES.GENERIC) {
@@ -289,7 +318,7 @@ export class MusicController {
     const bTypeName = getEntityTypeName(b.contextEntity);
     if (aTypeName !== bTypeName) {
       const priorities = DOCUMENT_SORT_PRIORITY;
-      return priorities.indexOf(bTypeName) - priorities.indexOf(aTypeName);
+      return priorities.indexOf(aTypeName) - priorities.indexOf(bTypeName);
     }
     return 0;
   }
@@ -316,7 +345,7 @@ export class MusicController {
    * @returns {Promise<void>} Resolves once this transition has run
    */
   async playCurrentTrack() {
-    if (!ATLAS.isPrimaryGM || !game.ready) return;
+    if (!ATLAS.isPrimaryGM || !game.ready || deferredToMinstrel()) return;
     const transition = this.playbackChain.then(async () => {
       const newContext = this.getCurrentPlaylist();
       if (!this.currentContext) await this.stopOrphanedTrack(newContext);

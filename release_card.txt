@@ -1,0 +1,17 @@
+## Breaking Changes
+
+- The module API moved from game.vgmusic to globalThis.VGMUSIC, also published on game.modules.get('vgmusic').api. Macros and modules that referenced game.vgmusic need updating.
+- The area and combat suppression toggles are replaced by one world setting covering every music context. Previous toggles are not carried over and start unsuppressed.
+- The Fade Duration module setting is gone; each playlist's own Fade Duration field now controls fades. Raise the volume slider on any track the old fade path left silent.
+
+## New Features
+
+- With Calendaria installed, a now-playing widget appears in its HUD naming the current track, and a world setting picks which slots it occupies.
+- A GM clicking the now-playing widget suppresses the current music context for everyone until clicked again. A player clicking it mutes module music for themselves only.
+- Dropping a playlist onto the music config window prompts for its section, starting track and priority. A pencil button on each row reopens the prompt, and a different section moves the assignment.
+- A Music Configuration entry was added to the scene navigation and scene sidebar context menus.
+- Other modules can register their own playlist sections and temporarily suppress a music context, and new vgmusic.trackChanged and vgmusic.suppressionChanged hooks fire when the track or suppressed set changes.
+
+## Bug Fixes
+
+- 16 bugs squashed
