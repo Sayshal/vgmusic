@@ -87,10 +87,9 @@ export class MusicController {
    * @returns {object} Track info or empty object
    */
   get currentTrackInfo() {
-    if (!this.currentTrack) return {};
     const track = this.currentTrack;
-    const info = this.currentContext?.scopeEntity?.getFlag(MODULE.ID, `playlist.${track.parent.id}.${track.id}`);
-    return info;
+    if (!track) return {};
+    return this.currentContext?.scopeEntity?.getFlag(MODULE.ID, `playlist.${track.parent.id}.${track.id}`);
   }
 
   /**
@@ -145,12 +144,10 @@ export class MusicController {
     const scene = this.currentScene;
     const combat = this.currentCombat;
     if (scene) {
-      const ctx = PlaylistContext.fromDocument(scene, 'area', scene);
-      if (ctx) contexts.push(ctx);
-    }
-    if (scene) {
-      const ctx = PlaylistContext.fromDocument(scene, 'combat', combat);
-      if (ctx) contexts.push(ctx);
+      const areaCtx = PlaylistContext.fromDocument(scene, 'area', scene);
+      if (areaCtx) contexts.push(areaCtx);
+      const combatCtx = PlaylistContext.fromDocument(scene, 'combat', combat);
+      if (combatCtx) contexts.push(combatCtx);
     }
     if (combat?.combatant) {
       for (const combatant of combat.combatants) {
@@ -316,10 +313,7 @@ export class MusicController {
     if (a.priority !== b.priority) return b.priority - a.priority;
     const aTypeName = getEntityTypeName(a.contextEntity);
     const bTypeName = getEntityTypeName(b.contextEntity);
-    if (aTypeName !== bTypeName) {
-      const priorities = DOCUMENT_SORT_PRIORITY;
-      return priorities.indexOf(aTypeName) - priorities.indexOf(bTypeName);
-    }
+    if (aTypeName !== bTypeName) return DOCUMENT_SORT_PRIORITY.indexOf(aTypeName) - DOCUMENT_SORT_PRIORITY.indexOf(bTypeName);
     return 0;
   }
 
@@ -337,7 +331,7 @@ export class MusicController {
       return false;
     });
     const sortedContexts = filteredContexts.sort(this.sortPlaylists.bind(this));
-    return sortedContexts.length > 0 ? sortedContexts[0] : null;
+    return sortedContexts[0] ?? null;
   }
 
   /**
@@ -348,7 +342,7 @@ export class MusicController {
     if (!ATLAS.isPrimaryGM || !game.ready || deferredToMinstrel()) return;
     const transition = this.playbackChain.then(async () => {
       const newContext = this.getCurrentPlaylist();
-      if (!this.currentContext) await this.stopOrphanedTrack(newContext);
+      if (!this.currentContext) await this.stopOrphanedPlaylist(newContext?.track);
       await this.playMusic(newContext);
     });
     this.playbackChain = transition.catch(() => {});
@@ -356,14 +350,24 @@ export class MusicController {
   }
 
   /**
-   * Stop a track left playing by a previous session or a previous head GM
-   * @param {PlaylistContext|null} context - The context about to play
+   * Stop a playlist left playing by a previous session or a previous head GM
+   * @param {PlaylistSound} [keep] - The track about to play
    */
-  async stopOrphanedTrack(context) {
-    const orphan = this.resolveNowPlaying(game.settings.get(MODULE.ID, SETTINGS.NOW_PLAYING));
-    if (!orphan || orphan === context?.track || !orphan.playing) return;
-    ATLAS.log(3, `Stopping ${orphan.name}, left playing by a previous session`);
-    await orphan.update({ playing: false, pausedTime: null });
+  async stopOrphanedPlaylist(keep) {
+    const playlist = game.playlists.get(game.settings.get(MODULE.ID, SETTINGS.NOW_PLAYING)?.playlistId);
+    if (playlist) await this.stopPlaylistSounds(playlist, keep);
+  }
+
+  /**
+   * Stop every playing sound in a playlist; per-sound updates avoid stopAll reseeding shuffle order
+   * @param {Playlist} playlist - Playlist whose sounds to stop
+   * @param {PlaylistSound} [keep] - Sound to leave playing
+   */
+  async stopPlaylistSounds(playlist, keep) {
+    const updates = playlist.sounds.filter((s) => s.playing && s !== keep).map((s) => ({ _id: s.id, playing: false, pausedTime: null }));
+    if (!updates.length) return;
+    ATLAS.log(3, `Stopping ${updates.length} sound(s) in ${playlist.name}`);
+    await playlist.updateEmbeddedDocuments('PlaylistSound', updates);
   }
 
   /**
@@ -391,8 +395,7 @@ export class MusicController {
       return;
     }
     if (prevTrack) {
-      await this.savePlaylistData(this.currentContext?.scopeEntity);
-      if (this.isAudioReady()) await prevTrack.update({ playing: false, pausedTime: null });
+      await Promise.all([this.savePlaylistData(this.currentContext?.scopeEntity), this.isAudioReady() && this.stopPlaylistSounds(prevTrack.parent)]);
       this.currentContext = null;
     }
     if (newTrack) {
