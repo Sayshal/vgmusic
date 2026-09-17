@@ -1,12 +1,4 @@
 ## Bug Fixes
 
-- A combat playlist assigned to a token or actor now only plays while that combatant is taking its turn, except in Last Actor mode. In Last Actor mode the scan back through earlier turns now tests each combatant's token as well, so a theme set on an unlinked token is reachable.
-- A grouped initiative roll now refreshes combat music. A group roll writes initiative onto each combatant rather than onto the combat, and the module was not watching for that, so the previous track kept playing.
-- Removing a playlist assignment from the world Default Music config, or moving one to a different section, now deletes the old entry. The delete instruction was written into the setting as literal data under Foundry v14.
-- The Music field on a prototype token sheet now identifies the sheet by the core isPrototype flag instead of the application class name. A token sheet whose class name does not contain "Prototype" sent the assignment to a discarded preview copy of the token.
-- When two playlists tie on priority, the more specific document now wins: token, then actor, then scene, then world default. The order was inverted, so the world fallback beat a token theme.
-
-## Changes
-
-- The world Default Music combat section now suggests a priority of -15 instead of -5, so a scene combat playlist outranks the world fallback. An assignment you already saved keeps the priority stored with it.
-- With Minstrel installed and active, this module no longer drives playback. It starts nothing on load and skips every later refresh, including sections registered by other modules.
+- Changing or stopping music now stops every sound still playing in the previous track's playlist.
+- On load or head GM change, sounds left playing in the last active playlist are stopped, except for the track about to play.
