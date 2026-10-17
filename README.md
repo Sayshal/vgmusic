@@ -16,18 +16,27 @@ Video Game Music adds context-aware music to FoundryVTT. It automatically switch
 
 ## Features
 
-- **Area & Combat Music** — assign playlists per-scene for exploration and combat
-- **Per-Token Themes** — give individual tokens their own combat music via Token Config
-- **Priority System** — control which music wins when multiple sources apply
+**Area & Combat Music:** Assign playlists per-scene for exploration and combat.
+
+<img src="https://wiki.3deathsaves.com/vgmusic/music-config.png" alt="Music Configuration window" width="750">
+
+**Priority System:** Control which music wins when multiple sources apply.
+
+<img src="https://wiki.3deathsaves.com/vgmusic/configure-section.png" alt="Configure Section prompt" width="750">
+
+**Per-Token Themes:** Give individual tokens their own combat music via Token Config.
+
+<img src="https://wiki.3deathsaves.com/vgmusic/token-battle-theme.png" alt="Token battle theme controls" width="750">
+
+**Suppression:** Toggle area or combat music on/off with hotkeys or scene controls.
+
+<img src="https://wiki.3deathsaves.com/vgmusic/suppression-controls.png" alt="Music suppression scene controls" width="750">
+
+### Also Included
+
 - **Fallback Modes** — configurable behavior when the active combatant has no theme
 - **Crossfade** — adjustable fade duration for smooth transitions between tracks
 - **Position Memory** — tracks resume from where they were interrupted
-- **Suppression** — toggle area or combat music on/off with hotkeys or scene controls
-
-<img src="https://wiki.3deathsaves.com/vgmusic/music-config.png" alt="Music Configuration window" width="750">
-<img src="https://wiki.3deathsaves.com/vgmusic/configure-section.png" alt="Configure Section prompt" width="750">
-<img src="https://wiki.3deathsaves.com/vgmusic/token-battle-theme.png" alt="Token battle theme controls" width="750">
-<img src="https://wiki.3deathsaves.com/vgmusic/suppression-controls.png" alt="Music suppression scene controls" width="750">
 
 ## Installation
 
