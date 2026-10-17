@@ -1,7 +1,3 @@
-# Commissioned Module Update
-
-This module was updated as part of a commission. Any further updates beyond new core compatibility is subject to a monetary contribution. Issues for new features will be assigned a value based on complexity.
-
 # Video Game Music
 
 ![GitHub release](https://img.shields.io/github/v/release/Sayshal/vgmusic?style=for-the-badge)
@@ -28,6 +24,11 @@ Video Game Music adds context-aware music to FoundryVTT. It automatically switch
 - **Position Memory** — tracks resume from where they were interrupted
 - **Suppression** — toggle area or combat music on/off with hotkeys or scene controls
 
+<img src="https://wiki.3deathsaves.com/vgmusic/music-config.png" alt="Music Configuration window" width="750">
+<img src="https://wiki.3deathsaves.com/vgmusic/configure-section.png" alt="Configure Section prompt" width="750">
+<img src="https://wiki.3deathsaves.com/vgmusic/token-battle-theme.png" alt="Token battle theme controls" width="750">
+<img src="https://wiki.3deathsaves.com/vgmusic/suppression-controls.png" alt="Music suppression scene controls" width="750">
+
 ## Installation
 
 Install through Foundry's module browser, or paste the manifest URL:
@@ -46,11 +47,7 @@ https://github.com/Sayshal/vgmusic/releases/latest/download/module.json
 
 ## Settings
 
-| Setting                  | Description                                                                                                     |
-| ------------------------ | --------------------------------------------------------------------------------------------------------------- |
-| Silent Combat Music Mode | What plays when the active combatant has no theme (highest priority, last actor, area music, or generic combat) |
-| Fade Duration            | Crossfade time in seconds (0 = use per-sound fade)                                                              |
-| Default Music            | World-level fallback combat playlist                                                                            |
+The full settings reference is on the [Wiki](https://wiki.3deathsaves.com/vgmusic/settings/).
 
 ## Support
 
