@@ -61,4 +61,4 @@ The full settings reference is on the [Wiki](https://wiki.3deathsaves.com/vgmusi
 ## Support
 
 - [Discord](https://discord.gg/PzzUwU9gdz)
-- [GitHub Issues](https://github.com/Sayshal/vgmusic/issues)
+- [Report a bug or request a feature](https://3deathsaves.com/report?module=vgmusic)
