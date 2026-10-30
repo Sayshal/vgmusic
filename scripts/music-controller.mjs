@@ -53,6 +53,7 @@ export class MusicController {
     this.suppressionTokens = new Set();
     this.suppressionCounts = new Map();
     this.activeSections = new Map();
+    this.silentMode = null;
     this.lastNowPlaying = null;
     this.playbackChain = Promise.resolve();
   }
@@ -272,8 +273,7 @@ export class MusicController {
     if (this.isSuppressed(context.context)) return false;
     if (this.activeSections.get(context.context) === false) return false;
     if (context.context === 'combat' && isCombatantSourced(context.contextEntity)) {
-      const silentMode = game.settings.get(MODULE.ID, SETTINGS.SILENT_COMBAT_MUSIC_MODE);
-      if (silentMode !== SILENT_MODES.LAST_ACTOR && !ownsCombatant(context.contextEntity, combat?.combatant)) return false;
+      if (this.silentMode !== SILENT_MODES.LAST_ACTOR && !ownsCombatant(context.contextEntity, combat?.combatant)) return false;
     }
     return true;
   }
@@ -291,7 +291,7 @@ export class MusicController {
     const isCurrentB = ownsCombatant(b.contextEntity, currentCombatant);
     if (isCurrentA && !isCurrentB) return -1;
     if (isCurrentB && !isCurrentA) return 1;
-    const silentMode = game.settings.get(MODULE.ID, SETTINGS.SILENT_COMBAT_MUSIC_MODE);
+    const silentMode = this.silentMode;
     if (silentMode === SILENT_MODES.LAST_ACTOR) {
       const combatants = combat?.turns || [];
       const startIdx = combat?.current?.turn || 0;
@@ -323,6 +323,7 @@ export class MusicController {
    */
   getCurrentPlaylist() {
     this.activeSections = this.evaluateSections();
+    this.silentMode = game.settings.get(MODULE.ID, SETTINGS.SILENT_COMBAT_MUSIC_MODE);
     const allContexts = this.getAllCurrentPlaylists();
     const filteredContexts = allContexts.filter((context) => {
       if (!this.filterPlaylists(context)) return false;
