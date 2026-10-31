@@ -1,4 +1,4 @@
-## Bug Fixes
+## Changes
 
-- Changing or stopping music now stops every sound still playing in the previous track's playlist.
-- On load or head GM change, sounds left playing in the last active playlist are stopped, except for the track about to play.
+- Combat playlist selection reads the silent combat music mode setting once per evaluation instead of on every candidate check and sort comparison.
+- Module compatibility now lists Foundry v14 as verified instead of a specific v14 build.
