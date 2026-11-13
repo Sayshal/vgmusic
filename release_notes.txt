@@ -1,4 +1,4 @@
-## Changes
+## Bug Fixes
 
-- Combat playlist selection reads the silent combat music mode setting once per evaluation instead of on every candidate check and sort comparison.
-- Module compatibility now lists Foundry v14 as verified instead of a specific v14 build.
+- Removing a playlist from a section or moving it to another section in the music config no longer logs a Foundry v14 deprecation warning.
+- Toggling music suppression no longer logs a Foundry v14 deprecation warning.

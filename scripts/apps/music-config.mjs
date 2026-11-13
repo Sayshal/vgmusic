@@ -196,7 +196,7 @@ export class VGMusicConfig extends HandlebarsApplicationMixin(ApplicationV2) {
       [`music.${section}.initialTrack`]: initialTrack || '',
       [`music.${section}.priority`]: priority
     };
-    if (previousSection && previousSection !== section) updateData[`music.-=${previousSection}`] = null;
+    if (previousSection && previousSection !== section) updateData[`music.${previousSection}`] = _del;
     await this.updateObject(updateData);
     musicController.playCurrentTrack();
   }
@@ -273,7 +273,7 @@ export class VGMusicConfig extends HandlebarsApplicationMixin(ApplicationV2) {
    */
   static async deletePlaylist(_event, target) {
     const section = target.closest('[data-section]').dataset.section;
-    await this.updateObject({ [`music.-=${section}`]: null });
+    await this.updateObject({ [`music.${section}`]: _del });
     musicController.playCurrentTrack();
   }
 }

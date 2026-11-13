@@ -19,5 +19,5 @@ export async function setContextSuppressed(context, suppressed) {
   if (suppressed) contexts.add(context);
   else contexts.delete(context);
   await game.settings.set(MODULE.ID, SETTINGS.SUPPRESSED_CONTEXTS, contexts);
-  ui.controls.initialize();
+  ui.controls.render();
 }
