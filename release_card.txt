@@ -1,0 +1,3 @@
+## Bug Fixes
+
+- 2 bugs squashed
