@@ -1,4 +1,8 @@
+## New Features
+
+- Added a GM-only Music Configuration button to the actor sheet header on AppV2 and AppV1 sheets, which opens the Music Configuration window for that actor.
+
 ## Bug Fixes
 
-- Removing a playlist from a section or moving it to another section in the music config no longer logs a Foundry v14 deprecation warning.
-- Toggling music suppression no longer logs a Foundry v14 deprecation warning.
+- The Calendaria now-playing indicator now shows "Resume music" for GMs while any music context is suppressed, and clicking it releases the most recently suppressed context, including custom sections.
+- The playlist name button tooltip in the Music Configuration window now reads "Open" instead of a raw localization key.
