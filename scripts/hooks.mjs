@@ -209,6 +209,26 @@ function onRenderTokenApplication(app, html, _context, _options) {
   }
 }
 
+/**
+ * Add a music configuration control to AppV2 actor sheet headers
+ * @param {object} sheet - The actor sheet
+ * @param {object[]} controls - Header controls, mutated in place
+ */
+function onGetActorSheetHeaderControls(sheet, controls) {
+  if (!game.user.isGM) return;
+  controls.push({ action: 'vgmusicConfig', icon: 'fas fa-music', label: 'VGMUSIC.ConfigTitle', onClick: () => new VGMusicConfig(sheet.document).render(true) });
+}
+
+/**
+ * Add a music configuration button to AppV1 actor sheet headers
+ * @param {object} sheet - The actor sheet
+ * @param {object[]} buttons - Header buttons, mutated in place
+ */
+function onGetActorSheetHeaderButtons(sheet, buttons) {
+  if (!game.user.isGM) return;
+  buttons.unshift({ class: 'vgmusic-config', icon: 'fas fa-music', label: 'VGMUSIC.ConfigTitle', onclick: () => new VGMusicConfig(sheet.document).render(true) });
+}
+
 /** Handle a user connecting or disconnecting, which can move head-GM status to this client */
 function onUserConnected() {
   musicController.playCurrentTrack();
@@ -261,5 +281,7 @@ export function registerHooks() {
   Hooks.on('deleteCombatant', onDeleteCombatant);
   Hooks.on('updateCombatant', onUpdateCombatant);
   Hooks.on('renderTokenApplication', onRenderTokenApplication);
+  Hooks.on('getHeaderControlsActorSheetV2', onGetActorSheetHeaderControls);
+  Hooks.on('getActorSheetHeaderButtons', onGetActorSheetHeaderButtons);
   Hooks.on('userConnected', onUserConnected);
 }

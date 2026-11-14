@@ -9,11 +9,12 @@ const BUTTON_POINTS = new Set(['hud.buttons.left', 'hud.buttons.right']);
 const LABEL_LENGTH = 24;
 
 /**
- * Get the context the widget acts on, preferring the head GM's live state over the mirror
- * @returns {string|null} Context key, or null when nothing is playing
+ * Get the context the widget acts on: for a GM the most recently suppressed one, otherwise the playing one
+ * @returns {string|null} Context key, or null when nothing is playing or suppressed
  */
 function currentContext() {
-  return musicController.currentContext?.context ?? getMirror()?.context ?? null;
+  const suppressed = game.user.isGM ? [...game.settings.get(MODULE.ID, SETTINGS.SUPPRESSED_CONTEXTS)].at(-1) : null;
+  return suppressed ?? musicController.currentContext?.context ?? getMirror()?.context ?? null;
 }
 
 /**
