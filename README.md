@@ -14,6 +14,8 @@
 
 Video Game Music adds context-aware music to FoundryVTT. It automatically switches between area and combat music based on game state, tracks playback position so music resumes where it left off, and crossfades between tracks.
 
+![Video Game Music Hero](https://wiki.3deathsaves.com/vgmusic/hero.png)
+
 ## Features
 
 **Area & Combat Music:** Assign playlists per-scene for exploration and combat.
